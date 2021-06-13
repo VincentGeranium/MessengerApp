@@ -87,6 +87,9 @@ class LoginViewController: UIViewController {
         self.title = "Log-in"
         view.backgroundColor = .white
         
+        emailField.delegate = self
+        passwordField.delegate = self
+        
         navigationItem.rightBarButtonItem = UIBarButtonItem(
             title: "Register",
             style: .done,
@@ -150,8 +153,16 @@ class LoginViewController: UIViewController {
     
     /// when user tapped login button
     @objc private func loginButtonTapped() {
+        // dismiss keybord when user hit the button
+        emailField.resignFirstResponder()
+        passwordField.resignFirstResponder()
+        
         // vaildation textfield
-        guard let email = emailField.text, let password = passwordField.text, !email.isEmpty, !password.isEmpty, password.count >= 6 else {
+        guard let email = emailField.text,
+              let password = passwordField.text,
+              !email.isEmpty,
+              !password.isEmpty,
+              password.count >= 6 else {
             alertUserLoginError()
             return
         }
