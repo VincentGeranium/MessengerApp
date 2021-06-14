@@ -20,6 +20,9 @@ class RegisterViewController: UIViewController {
     
     private let imageView: UIImageView = {
         let imageView: UIImageView = UIImageView()
+        imageView.layer.masksToBounds = true
+        imageView.layer.borderWidth = 2
+        imageView.layer.borderColor = UIColor.lightGray.cgColor
         imageView.contentMode = .scaleAspectFit
         imageView.tintColor = .gray
         imageView.image = UIImage(systemName: "person")
@@ -187,7 +190,7 @@ class RegisterViewController: UIViewController {
     }
     
     @objc private func didTapChangeUserProfilePic() {
-        print("tapped user profile image view")
+        presentPhotoActionSheets()
     }
     
     override func viewDidLayoutSubviews() {
@@ -203,6 +206,9 @@ class RegisterViewController: UIViewController {
             width: size,
             height: size
         )
+        
+        // make image view look like circle round
+        imageView.layer.cornerRadius = imageView.width/2
         
         firstNameField.frame = CGRect(
             x: 30,
@@ -303,5 +309,100 @@ extension RegisterViewController: UITextFieldDelegate {
         }
         
         return true
+    }
+}
+// c.f : UIImagePickerControllerDelegate는 UINavigationControllerDelegate가 없으면 동작하지 않는다.
+extension RegisterViewController: UIImagePickerControllerDelegate, UINavigationControllerDelegate {
+    // this  delegate is get the result user taking a picture or selecting a picture
+    
+    /// This function is own function, about  action sheets.
+    /// When user tapped the profile imageview, this function will call
+    func presentPhotoActionSheets() {
+        let actionSheet = UIAlertController(
+            title: "Profile Picture",
+            message: "How would you like to select a picture?",
+            preferredStyle: .actionSheet
+        )
+        // three button of action sheet.
+        // 1. cancel
+        // 2. take photo
+        // 3. select photo
+        
+        
+        actionSheet.addAction(
+            UIAlertAction(
+                title: "Cancel",
+                style: .cancel,
+                handler: nil
+            )
+        )
+        
+        actionSheet.addAction(
+            UIAlertAction(
+                title: "Take Photo",
+                style: .default,
+                // the parameter of handler is comes to action it self.
+                handler: { [weak self] _ in
+                    self?.presentCamera()
+                    
+                }
+            )
+        )
+        
+        actionSheet.addAction(
+            UIAlertAction(
+                title: "Chose Photo",
+                style: .default,
+                // the parameter of handler is comes to action it self.
+                handler: { [weak self] _ in
+                    self?.presentPhotoPicker()
+                }
+            )
+        )
+
+        present(actionSheet, animated: true, completion: nil)
+    }
+    
+    /// this functions for call two actionSheet about "Take Photo" and "Chose Photo"
+    // why am i make functions for the these actionSheets?
+        // reason of for moduler
+    func presentCamera() {
+        let vc = UIImagePickerController()
+        vc.sourceType = .camera
+        vc.delegate = self
+        // for crop out picture
+        vc.allowsEditing = true
+        present(vc, animated: true, completion: nil)
+    }
+    
+    func presentPhotoPicker() {
+        let vc = UIImagePickerController()
+        vc.sourceType = .photoLibrary
+        vc.delegate = self
+        // for crop out picture
+        vc.allowsEditing = true
+        present(vc, animated: true, completion: nil)
+    }
+    
+    // reseult capture from here, "imagePickerController" and "imagePickerControllerDidCancel"
+    /// This function call  when user taking photo or selecting a photo.
+    ///   - info: Actually can grap the image inside of this Dictionary
+    func imagePickerController(_ picker: UIImagePickerController, didFinishPickingMediaWithInfo info: [UIImagePickerController.InfoKey : Any]) {
+        picker.dismiss(animated: true, completion: nil)
+        // for figure out the key of grap image
+        print(info)
+        
+        // get image from the info and get into user profile imageView
+        // c.f : the "editImage" is user make crop or somthing to image and "originalImage" is the notting changed image.
+        guard let selectedImage = info[UIImagePickerController.InfoKey.editedImage] as? UIImage else {
+            return
+        }
+        
+        self.imageView.image = selectedImage
+    }
+    
+    /// This function call did cancel when user taking photo or selecting a photo.
+    func imagePickerControllerDidCancel(_ picker: UIImagePickerController) {
+        picker.dismiss(animated: true, completion: nil)
     }
 }

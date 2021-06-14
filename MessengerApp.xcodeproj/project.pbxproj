@@ -3,7 +3,7 @@
 	archiveVersion = 1;
 	classes = {
 	};
-	objectVersion = 50;
+	objectVersion = 51;
 	objects = {
 
 /* Begin PBXBuildFile section */
@@ -62,7 +62,6 @@
 				B61C4D36DB2FAD3165632751 /* Pods-MessengerApp.debug.xcconfig */,
 				80363218F0BE86E625A70C99 /* Pods-MessengerApp.release.xcconfig */,
 			);
-			name = Pods;
 			path = Pods;
 			sourceTree = "<group>";
 		};
@@ -87,12 +86,12 @@
 		6A9EA8C026733F400015A563 /* MessengerApp */ = {
 			isa = PBXGroup;
 			children = (
+				6A9EA8CF26733F400015A563 /* Info.plist */,
 				6A9EA8D9267340F10015A563 /* Resources */,
 				6A9EA8D8267340E60015A563 /* ViewModels */,
 				6A9EA8D7267340E10015A563 /* Models */,
 				6A9EA8D6267340DD0015A563 /* Views */,
 				6A9EA8D5267340D50015A563 /* Controllers */,
-				6A9EA8CF26733F400015A563 /* Info.plist */,
 			);
 			path = MessengerApp;
 			sourceTree = "<group>";
