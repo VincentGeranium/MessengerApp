@@ -9,6 +9,7 @@
 /* Begin PBXBuildFile section */
 		48CE86F81106BD08B2E02612 /* Pods_MessengerApp.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 4F3F5367527A1F7074848402 /* Pods_MessengerApp.framework */; };
 		6A258A7C2675E4E600E699FD /* Extension.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6A258A7B2675E4E600E699FD /* Extension.swift */; };
+		6A504F7B26786D1800775001 /* GoogleService-Info.plist in Resources */ = {isa = PBXBuildFile; fileRef = 6A504F7A26786D1800775001 /* GoogleService-Info.plist */; };
 		6A9EA8C226733F400015A563 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6A9EA8C126733F400015A563 /* AppDelegate.swift */; };
 		6A9EA8C426733F400015A563 /* SceneDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6A9EA8C326733F400015A563 /* SceneDelegate.swift */; };
 		6A9EA8C626733F400015A563 /* ConversationsViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6A9EA8C526733F400015A563 /* ConversationsViewController.swift */; };
@@ -26,6 +27,7 @@
 /* Begin PBXFileReference section */
 		4F3F5367527A1F7074848402 /* Pods_MessengerApp.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_MessengerApp.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		6A258A7B2675E4E600E699FD /* Extension.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Extension.swift; sourceTree = "<group>"; };
+		6A504F7A26786D1800775001 /* GoogleService-Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; path = "GoogleService-Info.plist"; sourceTree = "<group>"; };
 		6A9EA8BE26733F400015A563 /* MessengerApp.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = MessengerApp.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		6A9EA8C126733F400015A563 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
 		6A9EA8C326733F400015A563 /* SceneDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SceneDelegate.swift; sourceTree = "<group>"; };
@@ -87,6 +89,7 @@
 			isa = PBXGroup;
 			children = (
 				6A9EA8CF26733F400015A563 /* Info.plist */,
+				6A504F7A26786D1800775001 /* GoogleService-Info.plist */,
 				6A9EA8D9267340F10015A563 /* Resources */,
 				6A9EA8D8267340E60015A563 /* ViewModels */,
 				6A9EA8D7267340E10015A563 /* Models */,
@@ -228,6 +231,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				6A9EA8CE26733F400015A563 /* LaunchScreen.storyboard in Resources */,
+				6A504F7B26786D1800775001 /* GoogleService-Info.plist in Resources */,
 				6AD747BA2673A90F0061F5BA /* Assets.xcassets in Resources */,
 				6A9EA8C926733F400015A563 /* Main.storyboard in Resources */,
 			);
