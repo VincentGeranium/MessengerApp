@@ -6,6 +6,9 @@
 //
 
 import UIKit
+import FirebaseAuth
+import Firebase
+
 
 /// For create account
 class RegisterViewController: UIViewController {
@@ -268,6 +271,18 @@ class RegisterViewController: UIViewController {
             return
         }
         // implement code of log in used with firebase
+        
+        // try to create account
+        FirebaseAuth.Auth.auth().createUser(withEmail: email, password: password) { authResult, error in
+            // About Error and authResult
+            guard let result = authResult, error == nil else {
+                print("Error occur: Creating User")
+                return
+            }
+            
+            let user = result.user
+            print("Created user: \(user)")
+        }
     }
     
     private func alertUserLoginError() {
