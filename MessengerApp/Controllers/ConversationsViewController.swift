@@ -6,23 +6,29 @@
 //
 
 import UIKit
+import FirebaseAuth
 
-/// Checked the User sign in, based UserDefult and if user have sign in show conversation screen or not show login screen
+/// Checked the User sign in, based UserDefult and if user have sign in show conversation screen or not show login screen,
+/// Initialization ViewController, RootViewController.
 class ConversationsViewController: UIViewController {
 
     override func viewDidLoad() {
         super.viewDidLoad()
         view.backgroundColor = .systemRed
+        
     }
     
     override func viewDidAppear(_ animated: Bool) {
         super.viewDidAppear(animated)
+        // c.f : UserDefault is save in the disk
         
-        // setting UserDefault
-        // UserDefault is save in the disk
-        let isLoggedIn = UserDefaults.standard.bool(forKey: "logged-in")
+        validateAuth()
+    }
+    
+    // Chacked Authentication State
+    private func validateAuth() {
         
-        if !isLoggedIn {
+        if FirebaseAuth.Auth.auth().currentUser == nil {
             // show login screen
             let vc = LoginViewController()
             let navigationVC = UINavigationController(rootViewController: vc)

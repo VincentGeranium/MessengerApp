@@ -28,7 +28,7 @@ class RegisterViewController: UIViewController {
         imageView.layer.borderColor = UIColor.lightGray.cgColor
         imageView.contentMode = .scaleAspectFit
         imageView.tintColor = .gray
-        imageView.image = UIImage(systemName: "person")
+        imageView.image = UIImage(systemName: "person.circle")
         return imageView
     }()
     
@@ -270,25 +270,51 @@ class RegisterViewController: UIViewController {
             alertUserLoginError()
             return
         }
-        // implement code of log in used with firebase
         
-        // try to create account
-        FirebaseAuth.Auth.auth().createUser(withEmail: email, password: password) { authResult, error in
-            // About Error and authResult
-            guard let result = authResult, error == nil else {
-                print("Error occur: Creating User")
+        // implement code below about log in used with firebase
+        
+        // trying to validate of email -> user exist or not
+        DatabaseManager.shared.userExist(with: email) { [weak self] exists in
+            guard let strongSelf = self else {
                 return
             }
             
-            let user = result.user
-            print("Created user: \(user)")
+            guard !exists else {
+                // user already exist
+                strongSelf.alertUserLoginError(message: "Looks like a user account for that email address already exists.")
+                return
+            }
+            
+            // try to create account
+            FirebaseAuth.Auth.auth().createUser(withEmail: email, password: password) { authResult, error in
+                // About Error and authResult
+                guard authResult != nil, error == nil else {
+                    print("Error occur: Creating User")
+                    return
+                }
+                
+                // this will be database entry -> (firstName, lastName and email)
+                DatabaseManager.shared.insertUser(with: UserInfo(firstName: firstName,
+                                                                 lastName: lastName,
+                                                                 emailAddress: email))
+                
+                
+                
+                strongSelf.navigationController?.dismiss(animated: true, completion: nil)
+            }
         }
     }
     
-    private func alertUserLoginError() {
+    /*
+     c.f :
+     
+     this function message parameter have default value that is "Please enter all information to create a new account"
+     and can be passing message our own.
+    */
+    private func alertUserLoginError(message: String = "Please enter all information to create a new account") {
         let alert = UIAlertController(
             title: "Woops",
-            message: "Please enter all information to create a new account",
+            message: message,
             preferredStyle: .alert
         )
         
