@@ -36,11 +36,16 @@ extension DatabaseManager {
     public func userExist(with email: String,
                           completion: @escaping((Bool) -> Void)) {
         
+        var safeEmail: String {
+            let safeEmail = email.replacingOccurrences(of: ".", with: "-")
+            return safeEmail
+        }
+        
         // getting data out of the database, this is important things than other pieces.
         // c.f : firebase database is allow to observe the value change any enrty
         // c.f : get a value and return snapshot
         // snapshot has value property of it, it can be optional because it can be dose not exist.
-        database.child(email).observeSingleEvent(of: .value) { snapshot, _ in
+        database.child(safeEmail).observeSingleEvent(of: .value) { snapshot, _ in
             // c.f : snapshot is Any so have to cast what u want
             // if pass the foundEmail guard let statement is the meaning about user email is exist.
             guard snapshot.value as? String != nil else {
@@ -61,7 +66,7 @@ extension DatabaseManager {
         // insert database
         // key is user email
         // this is insert query.
-        database.child(userInfo.emailAddress).setValue([
+        database.child(userInfo.safeEmail).setValue([
             "first_name": userInfo.firstName,
             "last_name": userInfo.lastName,
         ])

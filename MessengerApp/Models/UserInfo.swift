@@ -13,5 +13,17 @@ struct UserInfo {
     let firstName: String
     let lastName: String
     let emailAddress: String
+    
+    // computed property for email
+    // InvalidatePathValidation have to none empty string and not contain '.', '#', '$', '[' or ']'
+    // so thi computed property is replacing the string for insert email in database.
+    var safeEmail: String {
+        let safeEmail = emailAddress.replacingOccurrences(of: ".", with: "-")
+//        safeEmail.replacingOccurrences(of: "#", with: "-")
+//        safeEmail.replacingOccurrences(of: "$", with: "-")
+        
+        return safeEmail
+    }
+    
 //    let profilePictureURL: String
 }
