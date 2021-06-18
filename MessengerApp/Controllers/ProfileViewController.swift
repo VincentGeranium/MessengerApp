@@ -17,7 +17,7 @@ class ProfileViewController: UIViewController {
     }()
     
     let data = ["Log Out"]
-
+    
     override func viewDidLoad() {
         super.viewDidLoad()
         view.addSubview(tableView)
@@ -30,7 +30,7 @@ class ProfileViewController: UIViewController {
         // make frame the screen, for tableview
         tableView.frame = view.bounds
     }
-
+    
 }
 
 extension ProfileViewController: UITableViewDelegate, UITableViewDataSource {
@@ -52,21 +52,45 @@ extension ProfileViewController: UITableViewDelegate, UITableViewDataSource {
         // This is simply Unhighlight the cell
         tableView.deselectRow(at: indexPath, animated: true)
         
-        // When user sign out
-        do {
-            try FirebaseAuth.Auth.auth().signOut()
-            // After sign out present log in viewcontroller
-            
-            let vc = LoginViewController()
-            let nav = UINavigationController(rootViewController: vc)
-            nav.modalPresentationStyle = .fullScreen
-            present(nav, animated: false, completion: nil)
-        }
-        catch {
-            // If sign out is failed
-            print("Failed Log out")
-        }
+        // Alert for user about make sure to log out
+        let alert = UIAlertController(
+            title: "",
+            message: "",
+            preferredStyle: .actionSheet
+        )
         
+        alert.addAction(UIAlertAction(
+                            title: "Log out",
+                            style: .destructive,
+                            // Handler is gonna be the action that get fire after selected
+                            handler: { [weak self] _ in
+                                // ‼️ Unwrap "self" by "strongSelf"
+                                guard let strongSelf = self else {
+                                    return
+                                }
+                                // When user sign out
+                                do {
+                                    try FirebaseAuth.Auth.auth().signOut()
+                                    // After sign out present log in viewcontroller
+                                    
+                                    let vc = LoginViewController()
+                                    let nav = UINavigationController(rootViewController: vc)
+                                    nav.modalPresentationStyle = .fullScreen
+                                    strongSelf.present(nav, animated: true, completion: nil)
+                                }
+                                catch {
+                                    // If sign out is failed
+                                    print("Failed Log out")
+                                }
+                            }))
+        
+        alert.addAction(UIAlertAction(
+                            title: "Cancel",
+                            style: .cancel,
+                            handler: nil
+        ))
+        
+        present(alert, animated: true, completion: nil)
     }
     
 }
