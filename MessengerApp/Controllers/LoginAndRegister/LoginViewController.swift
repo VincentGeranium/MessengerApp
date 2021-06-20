@@ -165,7 +165,7 @@ class LoginViewController: UIViewController {
             x: 30,
             y: loginButton.bottom+10,
             width: scrollView.width-60,
-            height: 52
+            height: 28
         )
         
         
@@ -286,6 +286,48 @@ extension LoginViewController: LoginButtonDelegate {
                 print("Faild to get email and name from fb result.")
                 return
             }
+            // 이름이 지금 김준으로 되어있어서 나누어 지지 않음.
+            
+            var testString = "이은채"
+            var testArray: [String] = []
+            
+            var nameComponent = userName.components(separatedBy: " ")
+            var firstName: String?
+            var lastName: String?
+            var fullName = ""
+            
+            if nameComponent.count >= 2 {
+                firstName = nameComponent[0]
+                lastName = nameComponent[1]
+            } else if nameComponent.count < 2 && nameComponent.count != 0 {
+                // 붙어있는 성과 이름을 각각 나누는 작업.
+                for i in userName.indices {
+                    
+                    print("userName의 elements : \(userName[i])")
+                    fullName.append(userName[i])
+                    
+                    print("append 한 String type의 fullName : \(fullName)")
+                    
+                    // 각각 나뉘어진 elements들을 성과 이름으로 분리해야하는데 다시 합침,,,,
+                    
+                }
+                
+            }
+                
+            
+            DatabaseManager.shared.userExist(with: email, completion: { exists in
+                guard let firstName = firstName, let lastName = lastName else {
+                    return
+                }
+                if !exists {
+                    DatabaseManager.shared.insertUser(with: UserInfo(
+                        firstName: firstName,
+                        lastName: lastName,
+                        emailAddress: email
+                    ))
+                }
+                
+            })
             
             
             // Need tray this token to firebase to get a credential
@@ -305,7 +347,7 @@ extension LoginViewController: LoginButtonDelegate {
                     return
                 }
                 
-                print("Successfully logged user in")
+                print("👏Successfully logged user in")
                 strongSelf.navigationController?.dismiss(animated: true, completion: nil)
             }
             

@@ -14,6 +14,8 @@ target 'MessengerApp' do
 
 # Facebook
 
+	pod 'FBSDKCoreKit'
 	pod 'FBSDKLoginKit'
+	pod 'FBSDKShareKit'
 
 end
