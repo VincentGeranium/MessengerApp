@@ -286,34 +286,69 @@ extension LoginViewController: LoginButtonDelegate {
                 print("Faild to get email and name from fb result.")
                 return
             }
-            // 이름이 지금 김준으로 되어있어서 나누어 지지 않음.
             
+            /*
             var testString = "이은채"
             var testArray: [String] = []
+            */
             
             var nameComponent = userName.components(separatedBy: " ")
+            
             var firstName: String?
             var lastName: String?
-            var fullName = ""
+            
             
             if nameComponent.count >= 2 {
                 firstName = nameComponent[0]
                 lastName = nameComponent[1]
+                print("nameComponent conunt - 1: \(nameComponent.count)")
             } else if nameComponent.count < 2 && nameComponent.count != 0 {
                 // 붙어있는 성과 이름을 각각 나누는 작업.
-                for i in userName.indices {
-                    
-                    print("userName의 elements : \(userName[i])")
-                    fullName.append(userName[i])
-                    
-                    print("append 한 String type의 fullName : \(fullName)")
-                    
-                    // 각각 나뉘어진 elements들을 성과 이름으로 분리해야하는데 다시 합침,,,,
-                    
+                
+                /*
+                 nameComponent 내 elements가 "이은채" 와 같이 성과 이름이 붙어 있는 경우
+                 Array type인 nameComponent를 popLast를 통해 String 으로 바꾼다.
+                 */
+                guard let fullName = nameComponent.popLast() else {
+                    print("Error : nameComponent is Empty")
+                    return
                 }
                 
-            }
+                print("fullName result: \(fullName)")
                 
+                /*
+                 String인 fullName을 for 문으로 하나씩 나누어 "이", "은", "채" 와 같이 만들어 Array type인 nameComponent에 하나씩 append 한다.
+                 result -> ["이","은","채"]
+                 */
+                for i in fullName {
+                    nameComponent.append(String(i))
+                }
+                
+                /*
+                 nameCompoent의 첫 번째 element는 한국 이름의 성으로 쓰이므로 lastName에 넣어주는 동시에 Array에서 빼준다.
+                 그러면 남는 것은 이름이 된다.
+                 */
+                lastName = nameComponent.remove(at: 0)
+                
+                /*
+                 nameComponent에 남은 것은 이름 -> ["은","채"] 가 된다 그러나 각가의 element로 나뉘어져 있으므로 for 문을 통해 각 element를 임시 저장
+                 instance를 만들어 자기 자신을 더해줌으로 인해 합쳐진 이름이 된다("은채"). 그럼 이것을 firstName에 저장하면 된다.
+                 */
+                var tempStr: String = ""
+                for i in 0...(nameComponent.count - 1) {
+//                    tempStr = String(nameComponent[i])
+                    tempStr += String(nameComponent[i])
+                }
+                
+                print("temp result: \(tempStr)")
+                print("nameComponent result: \(nameComponent)")
+                
+                firstName = tempStr
+                
+                print("first : \(firstName), last : \(lastName)")
+            }
+            
+
             
             DatabaseManager.shared.userExist(with: email, completion: { exists in
                 guard let firstName = firstName, let lastName = lastName else {
@@ -326,7 +361,6 @@ extension LoginViewController: LoginButtonDelegate {
                         emailAddress: email
                     ))
                 }
-                
             })
             
             
