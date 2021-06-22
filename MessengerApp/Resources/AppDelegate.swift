@@ -8,10 +8,11 @@
 import UIKit
 import Firebase
 import FBSDKCoreKit
+import GoogleSignIn
 
 @UIApplicationMain
-class AppDelegate: UIResponder, UIApplicationDelegate {
-    
+class AppDelegate: UIResponder, UIApplicationDelegate, GIDSignInDelegate {
+
     var window: UIWindow?
     
     func application(
@@ -24,12 +25,17 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
         self.window = window
         self.window?.makeKeyAndVisible()
         
+        FirebaseApp.configure()
+        
         ApplicationDelegate.shared.application(
             application,
             didFinishLaunchingWithOptions: launchOptions
         )
         
-        FirebaseApp.configure()
+        // reason of FirebaseApp.app() is 'optional'
+        // incase is not able to find plist to grap my clientID. it will return nil
+        GIDSignIn.sharedInstance().clientID = FirebaseApp.app()?.options.clientID
+        GIDSignIn.sharedInstance().delegate = self
         
         return true
     }
@@ -55,6 +61,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
         // Use this method to release any resources that were specific to the discarded scenes, as they will not return.
     }
     
+    // this function get from facebook SDK
     func application(
         _ app: UIApplication,
         open url: URL,
@@ -66,7 +73,81 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
             sourceApplication: options[UIApplication.OpenURLOptionsKey.sourceApplication] as? String,
             annotation: options[UIApplication.OpenURLOptionsKey.annotation]
         )
+        
+        // allow this app for open up google sign in webview
+        return GIDSignIn.sharedInstance().handle(url)
     }
-
+    
+    // automatically step out the function when added GIDSignInDelegate
+    // this function is call when user is success sign in and it pass user object('didSignInFor user: GIDGoogleUser!')
+    // c.f : similar how treat that access token from facebook for firebase credential
+    func sign(_ signIn: GIDSignIn!, didSignInFor user: GIDGoogleUser!, withError error: Error!) {
+        // Managed Error
+        
+        guard error == nil else {
+            if let error = error {
+                print("Failed to sign in with Google: \(error)")
+            }
+            return
+        }
+        
+        guard let user = user else {
+            return
+        }
+        
+        print("Did sign in with Google: \(user)")
+        
+        // get user email, name
+        guard let email = user.profile.email,
+              let firstName = user.profile.givenName,
+              let lastName = user.profile.familyName else {
+            return
+        }
+        
+        
+        // check before firebase credendial
+        // user email exists check
+        DatabaseManager.shared.userExist(with: email) { exists in
+            // if user email dosen't exists excute 'if statement'
+            // if user already dose exists in database. skip this 'if statment' and treat cridential
+            if !exists {
+                // gonna insert to database
+                DatabaseManager.shared.insertUser(with: UserInfo(firstName: firstName,
+                                                                 lastName: lastName,
+                                                                 emailAddress: email))
+            }
+        }
+        
+        // treat access token from google for a firebase cridential
+        guard let authentication = user.authentication else {
+            print("Missing auth object off of google user")
+            return
+        }
+        let credential = GoogleAuthProvider.credential(withIDToken: authentication.idToken,
+                                                       accessToken: authentication.accessToken)
+        
+        // firebase auth actualy sign in
+        FirebaseAuth.Auth.auth().signIn(with: credential) { authResult, error in
+            guard authResult != nil, error == nil else {
+                print("failed to sign in with google credential.")
+                return
+            }
+            
+            print("Successfully signed in with Google credential.")
+            /*
+             fire the notification when successfullt signed in with google, it will defer the controll rather
+             it will telled login notification who is observing
+             */
+            
+            // if sign in, it will be dismiss
+            NotificationCenter.default.post(name: .didLogInNotification, object: nil)
+        }
+    }
+    
+    // this is other delegate function for the google sign in delegate
+    // disconnect user, log out
+    func sign(_ signIn: GIDSignIn!, didDisconnectWith user: GIDGoogleUser!, withError error: Error!) {
+        print("Google user was disconnected")
+    }
 
 }

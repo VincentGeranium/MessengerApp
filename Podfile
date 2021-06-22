@@ -18,4 +18,8 @@ target 'MessengerApp' do
 	pod 'FBSDKLoginKit'
 	pod 'FBSDKShareKit'
 
+# Google
+	
+	pod 'GoogleSignIn'
+
 end

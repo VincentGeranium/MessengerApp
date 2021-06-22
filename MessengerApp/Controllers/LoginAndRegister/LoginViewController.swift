@@ -9,6 +9,7 @@ import UIKit
 import FirebaseAuth
 import Firebase
 import FBSDKLoginKit
+import GoogleSignIn
 
 class LoginViewController: UIViewController {
     
@@ -90,8 +91,43 @@ class LoginViewController: UIViewController {
         return button
     }()
     
+    private let gidLoginButton: GIDSignInButton = {
+        let button: GIDSignInButton = GIDSignInButton()
+        return button
+    }()
+    
+    private var loginObserver: NSObjectProtocol?
+    
     override func viewDidLoad() {
         super.viewDidLoad()
+        
+        // make notification observer for dismiss navigation controller
+        // notification is Design patterns for broadcasting information and for subscribing to broadcasts.
+        /*
+         explain
+         we need to dismiss navi when user sign in with these two kind of sign in system(facebook, google)
+         but i don't need make two dismiss code. just make and use notificatio pattern
+         because the function what i need is same "when user sign in navi must be dismiss"
+         */
+        
+        // this actually return result that we can a sign to discardable resutl
+        /*
+         this property is when controller deinit(a.k.a dismiss)
+         we gonna get rid of this observation('present)
+         memory clean things up
+         */
+        loginObserver = NotificationCenter.default.addObserver(forName: .didLogInNotification,
+                                                               object: nil,
+                                                               queue: .main) { [weak self] _ in
+            // passing notification inside here
+            // dismiss this viewcontroller
+            guard let strongSelf = self else { return }
+            
+            strongSelf.navigationController?.dismiss(animated: true, completion: nil)
+        }
+        
+        // do specify
+        GIDSignIn.sharedInstance().presentingViewController = self
         
         self.title = "Log-in"
         view.backgroundColor = .white
@@ -123,8 +159,17 @@ class LoginViewController: UIViewController {
         scrollView.addSubview(passwordField)
         scrollView.addSubview(loginButton)
         scrollView.addSubview(fbLoginButton)
+        scrollView.addSubview(gidLoginButton)
     }
     
+    // MARK:- deinit
+    deinit {
+        if let observer = loginObserver {
+            NotificationCenter.default.removeObserver(observer)
+        }
+    }
+    
+    // MARK:- viewDidLayoutSubviews
     override func viewDidLayoutSubviews() {
         super.viewDidLayoutSubviews()
         
@@ -132,43 +177,36 @@ class LoginViewController: UIViewController {
         scrollView.frame = view.bounds
         
         let size = scrollView.width/3
-        imageView.frame = CGRect(
-            x: (scrollView.width-size)/2,
-            y: 20,
-            width: size,
-            height: size
-        )
+        imageView.frame = CGRect(x: (scrollView.width-size)/2,
+                                 y: 20,
+                                 width: size,
+                                 height: size)
         
         // c.f : generally "52" height size of textfield is standard.
-        emailField.frame = CGRect(
-            x: 30,
-            y: imageView.bottom+10,
-            width: scrollView.width-60,
-            height: 52
-        )
+        emailField.frame = CGRect(x: 30,
+                                  y: imageView.bottom+10,
+                                  width: scrollView.width-60,
+                                  height: 52)
         
-        passwordField.frame = CGRect(
-            x: 30,
-            y: emailField.bottom+10,
-            width: scrollView.width-60,
-            height: 52
-        )
+        passwordField.frame = CGRect(x: 30,
+                                     y: emailField.bottom+10,
+                                     width: scrollView.width-60,
+                                     height: 52)
         
-        loginButton.frame = CGRect(
-            x: 30,
-            y: passwordField.bottom+10,
-            width: scrollView.width-60,
-            height: 52
-        )
+        loginButton.frame = CGRect(x: 30,
+                                   y: passwordField.bottom+10,
+                                   width: scrollView.width-60,
+                                   height: 52)
         
-        fbLoginButton.frame = CGRect(
-            x: 30,
-            y: loginButton.bottom+10,
-            width: scrollView.width-60,
-            height: 28
-        )
+        fbLoginButton.frame = CGRect(x: 30,
+                                     y: loginButton.bottom+10,
+                                     width: scrollView.width-60,
+                                     height: 28)
         
-        
+        gidLoginButton.frame = CGRect(x: 30,
+                                      y: fbLoginButton.bottom+10,
+                                      width: scrollView.width-60,
+                                      height: 28)
         
     }
     
@@ -215,7 +253,7 @@ class LoginViewController: UIViewController {
         )
         
         let alertAction = UIAlertAction(
-            title: "Dissmiss",
+            title: "Dismiss",
             style: .cancel,
             handler: nil
         )
@@ -390,3 +428,4 @@ extension LoginViewController: LoginButtonDelegate {
     }
 
 }
+
