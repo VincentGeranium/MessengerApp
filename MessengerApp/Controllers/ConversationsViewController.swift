@@ -11,10 +11,18 @@ import FirebaseAuth
 /// Checked the User sign in, based UserDefult and if user have sign in show conversation screen or not show login screen,
 /// Initialization ViewController, RootViewController.
 class ConversationsViewController: UIViewController {
+    
+    private let tableView: UITableView = {
+        let tableView: UITableView = UITableView()
+        tableView.register(UITableViewCell.self, forCellReuseIdentifier: "cell")
+        return tableView
+    }()
 
     override func viewDidLoad() {
         super.viewDidLoad()
         view.backgroundColor = .systemBackground
+        view.addSubview(tableView)
+        setupTableView()
     }
     
     override func viewDidAppear(_ animated: Bool) {
@@ -35,7 +43,22 @@ class ConversationsViewController: UIViewController {
             present(navigationVC, animated: false, completion: nil)
         }
     }
-
+    
+    private func setupTableView() {
+        tableView.delegate = self
+        tableView.dataSource = self
+    }
 
 }
 
+extension ConversationsViewController: UITableViewDelegate, UITableViewDataSource {
+    func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
+        return 0
+    }
+    
+    func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
+        return UITableViewCell()
+    }
+    
+    
+}

@@ -115,8 +115,8 @@
 		6A9EA8D5267340D50015A563 /* Controllers */ = {
 			isa = PBXGroup;
 			children = (
-				6A9EA8C526733F400015A563 /* ConversationsViewController.swift */,
 				6AD747B82673A2750061F5BA /* LoginAndRegister */,
+				6A9EA8C526733F400015A563 /* ConversationsViewController.swift */,
 				6A9EA8DF267342D60015A563 /* PhotoViewerViewController.swift */,
 				6A9EA8E1267342E90015A563 /* VideoPlayerViewController.swift */,
 				6A9EA8E3267343370015A563 /* NewConversationViewController.swift */,
