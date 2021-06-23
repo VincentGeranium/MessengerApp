@@ -10,8 +10,12 @@ import FirebaseAuth
 import Firebase
 import FBSDKLoginKit
 import GoogleSignIn
+import JGProgressHUD
 
 class LoginViewController: UIViewController {
+    
+    // create instance of spinner
+    private let spinner: JGProgressHUD = JGProgressHUD(style: .dark)
     
     // 화면이 작은 디바이스의 경우 키보드가 올라면 많은 화면을 가리게 된다 그러므로 그것을 위해 여러가지 방법이 있지만 이 곳에서는 스크롤 뷰를 사용한다.
     // c.f : scroll view 외의 다른 경우 stack view를 활용할수도 있다
@@ -226,11 +230,19 @@ class LoginViewController: UIViewController {
             return
         }
         
+        // spinner show
+        spinner.show(in: view)
+        
         // implement code of log in used with firebase(sign in)
         // c.f: the Firebase log in framework is caching log in state.
         FirebaseAuth.Auth.auth().signIn(withEmail: email, password: password) { [weak self] authResult, error in
             guard let strongSelf = self else {
                 return
+            }
+            
+            // get rid of spinner
+            DispatchQueue.main.async {
+                strongSelf.spinner.dismiss()
             }
             
             guard let result = authResult, error == nil else {
