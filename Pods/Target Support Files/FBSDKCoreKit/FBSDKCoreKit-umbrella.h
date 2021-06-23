@@ -11,6 +11,8 @@
 #endif
 
 #import "FBSDKAccessToken.h"
+#import "FBSDKAccessTokenProtocols.h"
+#import "FBSDKAdvertisingTrackingStatus.h"
 #import "FBSDKApplicationDelegate.h"
 #import "FBSDKApplicationObserving.h"
 #import "FBSDKAuthenticationToken.h"
@@ -28,6 +30,8 @@
 #import "FBSDKCoreKitVersions.h"
 #import "FBSDKDeviceButton.h"
 #import "FBSDKDeviceViewControllerBase.h"
+#import "FBSDKFeature.h"
+#import "FBSDKFeatureChecking.h"
 #import "FBSDKImpressionTrackingButton.h"
 #import "FBSDKLocation.h"
 #import "FBSDKLoggingBehavior.h"
@@ -37,6 +41,8 @@
 #import "FBSDKProfilePictureView.h"
 #import "FBSDKRandom.h"
 #import "FBSDKSettings.h"
+#import "FBSDKSettingsLogging.h"
+#import "FBSDKSettingsProtocol.h"
 #import "FBSDKTokenCaching.h"
 #import "FBSDKURL.h"
 #import "FBSDKURLOpening.h"
