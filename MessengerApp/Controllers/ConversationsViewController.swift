@@ -13,6 +13,8 @@ import JGProgressHUD
 /// Initialization ViewController, RootViewController.
 class ConversationsViewController: UIViewController {
     
+    let vc = NewConversationViewController()
+    
     private let spinner: JGProgressHUD = JGProgressHUD(style: .dark)
     
     private let tableView: UITableView = {
@@ -40,14 +42,29 @@ class ConversationsViewController: UIViewController {
         label.isHidden = true
         return label
     }()
-
+    
+    
     override func viewDidLoad() {
         super.viewDidLoad()
+//        navigationItem.rightBarButtonItem = UIBarButtonItem(barButtonSystemItem: .compose,
+//                                                            target: self,
+//                                                            action: #selector(didTapComposeButton))
+        navigationItem.rightBarButtonItem = composeButton()
         view.backgroundColor = .systemBackground
         view.addSubview(tableView)
         view.addSubview(noConversationLabel)
         setupTableView()
         fetchConverstation()
+        vc.delegate = self
+    }
+    
+    
+    
+    override func viewDidLayoutSubviews() {
+        super.viewDidLayoutSubviews()
+        // setup frame to the tableview after add as subview
+        // make tableview frame entire view
+        tableView.frame = view.bounds
     }
     
     override func viewDidAppear(_ animated: Bool) {
@@ -75,10 +92,22 @@ class ConversationsViewController: UIViewController {
     }
     
     private func fetchConverstation() {
-        
+        // default value (hidden) is false
+        tableView.isHidden = false
     }
-
+    
+    @objc private func didTapComposeButton() {
+        // for create new converstation viewcontroller
+        // simply present vc
+        /* this vc is root vc of navigation because when user tapped compose button, why reason of make new converstion so make new navigation vc and root vc is new converstion vc
+         */
+//        let vc = NewConversationViewController()
+        let naviVC = UINavigationController(rootViewController: vc)
+        present(naviVC, animated: true, completion: nil)
+    }
 }
+
+
 
 extension ConversationsViewController: UITableViewDelegate, UITableViewDataSource {
     func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
@@ -88,13 +117,14 @@ extension ConversationsViewController: UITableViewDelegate, UITableViewDataSourc
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         let cell = tableView.dequeueReusableCell(withIdentifier: "cell", for: indexPath)
         cell.textLabel?.text = "Hello World"
+        cell.accessoryType = .disclosureIndicator
         return cell
     }
-
+    
     func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
         // looking up UI 'chat bubble'
-            // so, when user tapped someone of these cell, push that chat screen on the stack
-            // implement 'didSelectRowAt' function
+        // so, when user tapped someone of these cell, push that chat screen on the stack
+        // implement 'didSelectRowAt' function
         tableView.deselectRow(at: indexPath, animated: true)
         
         let vc = ChatViewController()
@@ -102,6 +132,13 @@ extension ConversationsViewController: UITableViewDelegate, UITableViewDataSourc
         vc.navigationItem.largeTitleDisplayMode = .never
         // push this vc on to the stack animation
         navigationController?.pushViewController(vc, animated: true)
+    }
+    
+}
+
+extension ConversationsViewController: NewConversationViewControllerDelegate {
+    func composeButton() -> UIBarButtonItem {
+        return UIBarButtonItem(barButtonSystemItem: .compose, target: self, action: #selector(didTapComposeButton))
     }
     
 }
