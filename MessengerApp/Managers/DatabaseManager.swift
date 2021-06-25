@@ -62,13 +62,20 @@ extension DatabaseManager {
     // write func about insert data to database
     /// Inserts new user to database, this is insert query
     /// - Parameter userInfo: infomation about user for insert to database.
-    public func insertUser(with userInfo: UserInfo) {
+    public func insertUser(with userInfo: UserInfo, compltion: @escaping (Bool) -> Void) {
         // insert database
         // key is user email
         // this is insert query.
         database.child(userInfo.safeEmail).setValue([
             "first_name": userInfo.firstName,
             "last_name": userInfo.lastName,
-        ])
+        ]) { error, _ in
+            guard error == nil else {
+                print("failed to write to database")
+                compltion(false)
+                return
+            }
+            compltion(true)
+        }
     }
 }

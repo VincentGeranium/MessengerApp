@@ -405,11 +405,15 @@ extension LoginViewController: LoginButtonDelegate {
                     return
                 }
                 if !exists {
-                    DatabaseManager.shared.insertUser(with: UserInfo(
-                        firstName: firstName,
-                        lastName: lastName,
-                        emailAddress: email
-                    ))
+                    let userInfo = UserInfo(firstName: firstName,
+                                            lastName: lastName,
+                                            emailAddress: email)
+                    
+                    DatabaseManager.shared.insertUser(with: userInfo) { success in
+                        if success {
+                            // upload image
+                        }
+                    }
                 }
             })
             

@@ -110,11 +110,17 @@ class AppDelegate: UIResponder, UIApplicationDelegate, GIDSignInDelegate {
         DatabaseManager.shared.userExist(with: email) { exists in
             // if user email dosen't exists excute 'if statement'
             // if user already dose exists in database. skip this 'if statment' and treat cridential
+            // insert to database
             if !exists {
+                let userInfo = UserInfo(firstName: firstName,
+                                        lastName: lastName,
+                                        emailAddress: email)
                 // gonna insert to database
-                DatabaseManager.shared.insertUser(with: UserInfo(firstName: firstName,
-                                                                 lastName: lastName,
-                                                                 emailAddress: email))
+                DatabaseManager.shared.insertUser(with: userInfo) { success in
+                    if success {
+                        // upload image
+                    }
+                }
             }
         }
         

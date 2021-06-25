@@ -304,9 +304,33 @@ class RegisterViewController: UIViewController {
                 }
                 
                 // this will be database entry -> (firstName, lastName and email)
-                DatabaseManager.shared.insertUser(with: UserInfo(firstName: firstName,
-                                                                 lastName: lastName,
-                                                                 emailAddress: email))
+                let userInfo = UserInfo(firstName: firstName,
+                                        lastName: lastName,
+                                        emailAddress: email)
+                
+                DatabaseManager.shared.insertUser(with: userInfo) { success in
+                    if success {
+                        // upload image
+                        guard let image = strongSelf.imageView.image,
+                              let data = image.pngData() else {
+                            return
+                        }
+                        // create file name
+                        let fileName = userInfo.profilePictureFileName
+                        StorageManager.shared.uploadProfilePicture(with: data,
+                                                                   fileName: fileName) { result in
+                            switch result {
+                            case .success(let downloadURL):
+                                // save the disk -> (cache)
+                                UserDefaults.standard.set(downloadURL,
+                                                          forKey: "profile_picture_url")
+                                print(downloadURL)
+                            case .failure(let error):
+                                print("Storage Manager Error: \(error)")
+                            }
+                        }
+                    }
+                }
                 
                 
                 

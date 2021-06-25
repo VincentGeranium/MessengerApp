@@ -25,5 +25,7 @@ struct UserInfo {
         return safeEmail
     }
     
-//    let profilePictureURL: String
+    var profilePictureFileName: String {
+        return "\(safeEmail)_profile_picture.png"
+    }
 }

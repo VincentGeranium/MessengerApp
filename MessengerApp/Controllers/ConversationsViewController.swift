@@ -13,8 +13,6 @@ import JGProgressHUD
 /// Initialization ViewController, RootViewController.
 class ConversationsViewController: UIViewController {
     
-    let vc = NewConversationViewController()
-    
     private let spinner: JGProgressHUD = JGProgressHUD(style: .dark)
     
     private let tableView: UITableView = {
@@ -43,19 +41,19 @@ class ConversationsViewController: UIViewController {
         return label
     }()
     
+    private let composeViewModel = ComposeButtonViewModel()
     
     override func viewDidLoad() {
         super.viewDidLoad()
-//        navigationItem.rightBarButtonItem = UIBarButtonItem(barButtonSystemItem: .compose,
-//                                                            target: self,
-//                                                            action: #selector(didTapComposeButton))
-        navigationItem.rightBarButtonItem = composeButton()
+        
+        navigationItem.rightBarButtonItem = composeViewModel.composeButton(vc: self,
+                                                                           action: #selector(didTapComposeButton))
         view.backgroundColor = .systemBackground
         view.addSubview(tableView)
         view.addSubview(noConversationLabel)
         setupTableView()
         fetchConverstation()
-        vc.delegate = self
+        //        vc.delegate = self
     }
     
     
@@ -101,7 +99,7 @@ class ConversationsViewController: UIViewController {
         // simply present vc
         /* this vc is root vc of navigation because when user tapped compose button, why reason of make new converstion so make new navigation vc and root vc is new converstion vc
          */
-//        let vc = NewConversationViewController()
+        let vc = NewConversationViewController()
         let naviVC = UINavigationController(rootViewController: vc)
         present(naviVC, animated: true, completion: nil)
     }
@@ -132,13 +130,6 @@ extension ConversationsViewController: UITableViewDelegate, UITableViewDataSourc
         vc.navigationItem.largeTitleDisplayMode = .never
         // push this vc on to the stack animation
         navigationController?.pushViewController(vc, animated: true)
-    }
-    
-}
-
-extension ConversationsViewController: NewConversationViewControllerDelegate {
-    func composeButton() -> UIBarButtonItem {
-        return UIBarButtonItem(barButtonSystemItem: .compose, target: self, action: #selector(didTapComposeButton))
     }
     
 }
