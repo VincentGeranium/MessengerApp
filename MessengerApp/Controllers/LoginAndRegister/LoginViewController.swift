@@ -304,6 +304,7 @@ extension LoginViewController: LoginButtonDelegate {
         // no operation
     }
     
+    // MARK:- facebook graph request
     func loginButton(_ loginButton: FBLoginButton, didCompleteWith result: LoginManagerLoginResult?, error: Error?) {
         guard let token = result?.token?.tokenString else {
             print("User failed to log in with facebook")
@@ -312,9 +313,16 @@ extension LoginViewController: LoginButtonDelegate {
         
         // if user logged in used by facebook, get user name and email for tray credential to firebase database.
         // Graph request
+        /*
+         when we request facebook, can see that getting data from them
+            -> parameters: ["fields": "email, name"]
+                -> particular is here the data is "email and name".
+                    -> c.f : if fixing 'the parameters' can getting another data for what I want.
+         */
         let facebookRequest = FBSDKLoginKit.GraphRequest(
             graphPath: "me",
-            parameters: ["fields": "email, name"],
+            parameters: ["fields":
+                            "email, first_name, last_name, picture.type(large)"],
             tokenString: token,
             version: nil,
             httpMethod: .get
@@ -328,14 +336,46 @@ extension LoginViewController: LoginButtonDelegate {
             }
             
             // we wanna graph email, name out of that dictionary
-            // facebook request result.
-            print("\(result)")
+            // log of data back
+            /*
+             This is the 'facebook graph request result'
+             -> example
+             
+             ["email": mvp4462@naver.com, "first_name": 준, "last_name": 김, "id": 4122317491155025, "picture": {
+                 data =     {
+                     height = 200;
+                     "is_silhouette" = 0;
+                     url = "https://platform-lookaside.fbsbx.com/platform/profilepic/?asid=4122317491155025&height=200&width=200&ext=1627362242&hash=AeQmFXNg2267LjkNGLs";
+                     width = 200;
+                 };
+             }]
+             
+             if grap data for '[]', which the data is 'Array'
+             if grap data for '{}', which the data is 'Object'
+             */
+            print("❤️ -> \(result)")
+            
+            
+            /*
+             why insert code 'return' ?
+             -> jsut debug perpose
+                -> actually when I checking the print state about 'result', I will not register user. so, insert code the 'return' commned
+             */
+//            return
             
             guard let userName = result["name"] as? String,
-                  let email = result["email"] as? String else {
-                print("Faild to get email and name from fb result.")
-                return
-            }
+                  let first_name = result["first_name"] as? String,
+                  let last_name = result["last_name"] as? String,
+                  let email = result["email"] as? String,
+                  let picture = result["picture"] as? [String: Any],
+                  // data는 4개의 키 값을 가지고 있는 object.
+                  // c.f : objcet는 순서가 없는 이름/값 쌍의 집합으로, 이름(키)이 문자열이다.
+                  let data = picture["data"] as? [String: Any],
+                  let pictureUrl = data["url"] as? String else {
+                    print("Faild to get pictureUrl from fb result.")
+                    return
+                  }
+            print(pictureUrl)
             
             /*
             var testString = "이은채"
@@ -411,7 +451,51 @@ extension LoginViewController: LoginButtonDelegate {
                     
                     DatabaseManager.shared.insertUser(with: userInfo) { success in
                         if success {
+                            // download bytes from the facebook image url
+                            
+                            // grap picture url from facebook
+                                // -> if not able to create url object just return
+                            guard let url = URL(string: pictureUrl) else {
+                                return
+                            }
+                            
+                            print("Downloading data")
+                            
+                            // URLSession for download bytes the image
+                            URLSession.shared.dataTask(with: url) { data, urlResponse, error in
+                                guard let data = data else {
+                                    print("failed to get data from facebook")
+                                    return
+                                }
+                                
+                                print("got data from facebook, uploading...")
+                                
+                                guard let urlResponse = urlResponse else {
+                                    return
+                                }
+                                print("URLSession dataTask func result of URLResponse : \(urlResponse)")
+                                
+                                guard error == nil else {
+                                    print("URLSession Error : \(error)")
+                                    return
+                                }
+                                
+                                // upload data to firebase
+                                let fileName = userInfo.profilePictureFileName
+                                
+                                StorageManager.shared.uploadProfilePicture(with: data, fileName: fileName) { result in
+                                    switch result {
+                                    case .success(let downloadURL):
+                                        UserDefaults.standard.set(downloadURL, forKey: "profile_picture_url")
+                                        print(downloadURL)
+                                    case .failure(let error):
+                                        print("Storage manager error: \(error)")
+                                    }
+                                }
+                            }.resume()
+                            
                             // upload image
+                            
                         }
                     }
                 }

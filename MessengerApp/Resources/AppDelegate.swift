@@ -118,7 +118,45 @@ class AppDelegate: UIResponder, UIApplicationDelegate, GIDSignInDelegate {
                 // gonna insert to database
                 DatabaseManager.shared.insertUser(with: userInfo) { success in
                     if success {
-                        // upload image
+                        /*
+                         check if the google profile picture actually exist
+                         */
+                        
+                        // -> if user have image
+                        if user.profile.hasImage {
+                            // -> if able to get a url image of dimension.
+                            guard let url = user.profile.imageURL(withDimension: 200) else {
+                                return
+                            }
+                            // want than download byte for the 'url'
+                            URLSession.shared.dataTask(with: url) { data, urlResponse, error in
+                                guard let data = data else {
+                                    return
+                                }
+                                
+                                guard let urlResponse = urlResponse else {
+                                    return
+                                }
+                                print("url response result : \(urlResponse)")
+                                
+                                guard error == nil else {
+                                    print("Can't get image url, error description : \(error)")
+                                    return
+                                }
+                                
+                                let fileName = userInfo.profilePictureFileName
+                                
+                                StorageManager.shared.uploadProfilePicture(with: data, fileName: fileName) { result in
+                                    switch result {
+                                    case .success(let downloadURL):
+                                        UserDefaults.standard.set(downloadURL, forKey: "profile_picture")
+                                        print(downloadURL)
+                                    case .failure(let error):
+                                        print("Storage manager error: \(error)")
+                                    }
+                                }
+                            }.resume()
+                        }
                     }
                 }
             }
