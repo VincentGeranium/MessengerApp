@@ -354,6 +354,7 @@ extension LoginViewController: LoginButtonDelegate {
              if grap data for '{}', which the data is 'Object'
              */
             print("❤️ -> \(result)")
+
             
             
             /*
@@ -361,95 +362,37 @@ extension LoginViewController: LoginButtonDelegate {
              -> jsut debug perpose
                 -> actually when I checking the print state about 'result', I will not register user. so, insert code the 'return' commned
              */
-//            return
+            //            return
             
-            guard let userName = result["name"] as? String,
-                  let first_name = result["first_name"] as? String,
-                  let last_name = result["last_name"] as? String,
-                  let email = result["email"] as? String,
+            guard let firstName = result["first_name"] as? String,
+                  let lastName = result["last_name"] as? String else {
+                print("Faild to get names from fb result.")
+                return
+            }
+            
+            guard let email = result["email"] as? String,
                   let picture = result["picture"] as? [String: Any],
                   // data는 4개의 키 값을 가지고 있는 object.
                   // c.f : objcet는 순서가 없는 이름/값 쌍의 집합으로, 이름(키)이 문자열이다.
-                  let data = picture["data"] as? [String: Any],
+                  let data = picture["data"] as? NSDictionary,
                   let pictureUrl = data["url"] as? String else {
-                    print("Faild to get pictureUrl from fb result.")
-                    return
-                  }
-            print(pictureUrl)
-            
-            /*
-            var testString = "이은채"
-            var testArray: [String] = []
-            */
-            
-            var nameComponent = userName.components(separatedBy: " ")
-            
-            var firstName: String?
-            var lastName: String?
-            
-            
-            if nameComponent.count >= 2 {
-                firstName = nameComponent[0]
-                lastName = nameComponent[1]
-                print("nameComponent conunt - 1: \(nameComponent.count)")
-            } else if nameComponent.count < 2 && nameComponent.count != 0 {
-                // 붙어있는 성과 이름을 각각 나누는 작업.
-                
-                /*
-                 nameComponent 내 elements가 "이은채" 와 같이 성과 이름이 붙어 있는 경우
-                 Array type인 nameComponent를 popLast를 통해 String 으로 바꾼다.
-                 */
-                guard let fullName = nameComponent.popLast() else {
-                    print("Error : nameComponent is Empty")
-                    return
-                }
-                
-                print("fullName result: \(fullName)")
-                
-                /*
-                 String인 fullName을 for 문으로 하나씩 나누어 "이", "은", "채" 와 같이 만들어 Array type인 nameComponent에 하나씩 append 한다.
-                 result -> ["이","은","채"]
-                 */
-                for i in fullName {
-                    nameComponent.append(String(i))
-                }
-                
-                /*
-                 nameCompoent의 첫 번째 element는 한국 이름의 성으로 쓰이므로 lastName에 넣어주는 동시에 Array에서 빼준다.
-                 그러면 남는 것은 이름이 된다.
-                 */
-                lastName = nameComponent.remove(at: 0)
-                
-                /*
-                 nameComponent에 남은 것은 이름 -> ["은","채"] 가 된다 그러나 각가의 element로 나뉘어져 있으므로 for 문을 통해 각 element를 임시 저장
-                 instance를 만들어 자기 자신을 더해줌으로 인해 합쳐진 이름이 된다("은채"). 그럼 이것을 firstName에 저장하면 된다.
-                 */
-                var tempStr: String = ""
-                for i in 0...(nameComponent.count - 1) {
-//                    tempStr = String(nameComponent[i])
-                    tempStr += String(nameComponent[i])
-                }
-                
-                print("temp result: \(tempStr)")
-                print("nameComponent result: \(nameComponent)")
-                
-                firstName = tempStr
-                
-                print("first : \(firstName), last : \(lastName)")
+                print("Faild to get pictureUrl from fb result.")
+                return
             }
-            
 
             
+            
             DatabaseManager.shared.userExist(with: email, completion: { exists in
-                guard let firstName = firstName, let lastName = lastName else {
-                    return
-                }
+//                guard let firstName = firstName, let lastName = lastName else {
+//                    return
+//                }
                 if !exists {
                     let userInfo = UserInfo(firstName: firstName,
                                             lastName: lastName,
                                             emailAddress: email)
                     
                     DatabaseManager.shared.insertUser(with: userInfo) { success in
+                        
                         if success {
                             // download bytes from the facebook image url
                             
@@ -497,6 +440,7 @@ extension LoginViewController: LoginButtonDelegate {
                             // upload image
                             
                         }
+                         
                     }
                 }
             })
@@ -526,6 +470,6 @@ extension LoginViewController: LoginButtonDelegate {
         }
         
     }
-
 }
+
 
