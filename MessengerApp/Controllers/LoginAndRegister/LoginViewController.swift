@@ -251,6 +251,12 @@ class LoginViewController: UIViewController {
             }
             
             let user = result.user
+            
+            // before dismiss navigationController, save the user email.
+                // cache user's first name, last name and email to userDefault
+                // if i wanna to show these data which somewhere in the device, i can cache data use by userDefault
+            UserDefaults.standard.setValue(email, forKey: "email")
+            
             print("Success to logged in user: \(user)")
             
             strongSelf.navigationController?.dismiss(animated: true, completion: nil)
@@ -375,12 +381,15 @@ extension LoginViewController: LoginButtonDelegate {
                   // data는 4개의 키 값을 가지고 있는 object.
                   // c.f : objcet는 순서가 없는 이름/값 쌍의 집합으로, 이름(키)이 문자열이다.
                   let data = picture["data"] as? NSDictionary,
+                  // c.f :  let data = picture["data"] as? NSDictionary == let data = picture["data"] as? [String: Any],
                   let pictureUrl = data["url"] as? String else {
                 print("Faild to get pictureUrl from fb result.")
                 return
             }
 
-            
+            // cache user's first name, last name and email to userDefault
+            // if i wanna to show these data which somewhere in the device, i can cache data use by userDefault
+            UserDefaults.standard.setValue(email, forKey: "email")
             
             DatabaseManager.shared.userExist(with: email, completion: { exists in
 //                guard let firstName = firstName, let lastName = lastName else {
@@ -471,5 +480,3 @@ extension LoginViewController: LoginButtonDelegate {
         
     }
 }
-
-

@@ -25,6 +25,64 @@ class ProfileViewController: UIViewController {
         view.addSubview(tableView)
         tableView.delegate = self
         tableView.dataSource = self
+        tableView.tableHeaderView = createTableHeaderView()
+    }
+    
+    // reason of return type is optional
+    /*
+     -> because if I don't have user email saved.
+     I don't need create header for the table to show the avatar
+     */
+    func createTableHeaderView() -> UIView? {
+        // get email from device
+        /*
+         c.f : email instance value must do typeCast, convert to String type because this value using in the 'safeEmail' function
+         */
+        guard let email = UserDefaults.standard.value(forKey: "email") as? String else {
+            return nil
+        }
+        
+        /*
+         ‼️ c.f : don't need to import FirebaseStorage
+         
+         because I have own my storage manager which will handle the fetch for us
+         I'm going to create a function there to make sure I keep things modular
+         */
+        
+        // email convert to safeEmail format
+            // c.f : I can access to 'function' which name of safeEmail
+        let safeEmail = DatabaseManager.safeEmail(emailAddress: email)
+        
+        // make instance 'fileName'
+            // c.f : have to same format with storage image file name.
+        let fileName = safeEmail + "_profile_picture.png"
+        
+        // directory structure that I want to get
+        let path = "images/" + fileName
+        
+        // create function from StorageManager that return 'download url' for this asset in the bucket
+        
+        let headerView = UIView(frame: CGRect(x: 0,
+                                        y: 0,
+                                        width: self.view.width,
+                                        height: 300))
+        
+        headerView.backgroundColor = .link
+        
+        let imageView = UIImageView(frame: CGRect(x: (headerView.frame.width-150) / 2,
+                                                  y: 75,
+                                                  width: 150,
+                                                  height: 150))
+        
+        imageView.contentMode = .scaleAspectFill
+        imageView.backgroundColor = .white
+        imageView.layer.masksToBounds = true
+        imageView.layer.borderColor = UIColor.white.cgColor
+        imageView.layer.borderWidth = 3
+        
+        headerView.addSubview(imageView)
+        
+        return headerView
     }
     
     override func viewDidLayoutSubviews() {

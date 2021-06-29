@@ -5,6 +5,8 @@
 //  Created by 김광준 on 2021/06/11.
 //
 
+// ‼️ Google sign in handled in AppDelegate.
+
 import UIKit
 import Firebase
 import FBSDKCoreKit
@@ -103,6 +105,18 @@ class AppDelegate: UIResponder, UIApplicationDelegate, GIDSignInDelegate {
               let lastName = user.profile.familyName else {
             return
         }
+        
+        // grap 'email' data from google sign in 'monstrosity google sign function'
+        UserDefaults.standard.setValue(email, forKey: "email")
+        
+        // MARK:- reason of cache user's email use by UserDefault
+        // ‼️ why do I save user email?? (from fb, google, firebase) ‼️
+        /*
+         -> reason of saving user email use by UserDefault in the device,
+         my firebase storage bucket has standardized format for their image
+         so I can actually just the email to query out the image for the user
+        */
+        
         
         
         // check before firebase credendial

@@ -17,6 +17,13 @@ final class DatabaseManager {
     // reference of database
     // c.f : "private" is notation of nobody pull this property to externally.
     private let database = Database.database().reference()
+    
+    // get user email
+    // email is using the image file name
+    static func safeEmail(emailAddress: String) -> String {
+        let safeEmail = emailAddress.replacingOccurrences(of: ".", with: "-")
+        return safeEmail
+    }
 }
 
 
