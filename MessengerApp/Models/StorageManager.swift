@@ -11,6 +11,7 @@ import FirebaseStorage
 final class StorageManager {
     static let shared = StorageManager()
     
+    // internal private reference to the firebase storage object
     private let storage = Storage.storage().reference()
     /*
      storage path will be like this below
@@ -44,6 +45,21 @@ final class StorageManager {
         }
     }
     
-    // create general function which is going to return the 'download URL' based on a path that I give it.
+    // general function, return 'the download url' based 'path' that I give it.
+        // this function provide completion handler
+        // completion handler will give me a result value back with 'String' or 'optionally Error' rather in the failer case as Error
+        // this hole completion handler return 'void'
+
+    public func downloadURL(for path: String, completion:  @escaping (Result<URL, Error>) -> Void) {
+        let reference = storage.child(path)
+        
+        reference.downloadURL { url, error in
+            guard let url = url, error == nil else {
+                completion(.failure(StorageErrors.failedToGetDownloadURL))
+                return
+            }
+            completion(.success(url))
+        }
+    }
     
 }

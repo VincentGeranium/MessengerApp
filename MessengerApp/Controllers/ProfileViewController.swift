@@ -49,6 +49,12 @@ class ProfileViewController: UIViewController {
          I'm going to create a function there to make sure I keep things modular
          */
         
+        /*
+         ‼️ c.f : workflow
+         1. I give it a path, I get the URL
+         2. I gonna have to use the download URL to download image itself
+         */
+        
         // email convert to safeEmail format
             // c.f : I can access to 'function' which name of safeEmail
         let safeEmail = DatabaseManager.safeEmail(emailAddress: email)
@@ -58,9 +64,8 @@ class ProfileViewController: UIViewController {
         let fileName = safeEmail + "_profile_picture.png"
         
         // directory structure that I want to get
+        // I can use the 'path' instance to fetch the 'download URL'
         let path = "images/" + fileName
-        
-        // create function from StorageManager that return 'download url' for this asset in the bucket
         
         let headerView = UIView(frame: CGRect(x: 0,
                                         y: 0,
@@ -78,11 +83,42 @@ class ProfileViewController: UIViewController {
         imageView.backgroundColor = .white
         imageView.layer.masksToBounds = true
         imageView.layer.borderColor = UIColor.white.cgColor
+        imageView.layer.cornerRadius = imageView.width/2
         imageView.layer.borderWidth = 3
         
         headerView.addSubview(imageView)
         
+        // create function from StorageManager that return 'download url' for this asset in the bucket
+        StorageManager.shared.downloadURL(for: path) { [weak self] result in
+            switch result {
+            case .success(let url):
+                // want download image itself
+                    // passing the 'imageView' up above that I created.
+                self?.downloadImage(imageView: imageView, url: url)
+            case .failure(let error):
+                print("Failed to get download URL, Error log -> \(error)")
+            }
+        }
+        
         return headerView
+    }
+    
+    // creat function, keep things moduler
+        // passing imageView as well as url
+    func downloadImage(imageView: UIImageView, url: URL) {
+        // donwload image
+        URLSession.shared.dataTask(with: url) { data, urlResponse, error in
+            guard let data = data, error == nil else {
+                return
+            }
+            
+            // Anything UI related should occur on the main thread
+            DispatchQueue.main.async {
+                let image = UIImage(data: data)
+                imageView.image = image
+            }
+            // c.f : '.resume' is when kick off the operation
+        }.resume()
     }
     
     override func viewDidLayoutSubviews() {

@@ -70,19 +70,98 @@ extension DatabaseManager {
     /// Inserts new user to database, this is insert query
     /// - Parameter userInfo: infomation about user for insert to database.
     public func insertUser(with userInfo: UserInfo, compltion: @escaping (Bool) -> Void) {
+        
+        
         // insert database
         // key is user email
         // this is insert query.
+            // make the root entry
         database.child(userInfo.safeEmail).setValue([
             "first_name": userInfo.firstName,
             "last_name": userInfo.lastName,
+            // completion for the failer
+                // if error is 'nil' meaning that 'nothing went wrong'
+                // after passing error statement, make childe nood name of 'users'
+                // 'users' is array of users which has just 'name' which has both the first name and last name and 'email'
+                // I gonna check first, if colletcion exists -> append other else (dosen't exists) -> create
+                // 'newCollection' only occur for the very first user thag sign up
         ]) { error, _ in
             guard error == nil else {
                 print("failed to write to database")
                 compltion(false)
                 return
             }
-            compltion(true)
+            
+            /*
+             discription about inner struct the userCollection
+             
+             one root child pointer is 'users'
+             
+            users ->    [
+                            [
+                                "name":
+                                "safe_email":
+                            ],
+                            [
+                                "name":
+                                "safe_email":
+                            ],
+                        ]
+             
+             why do this?
+             -> when users try to start conversation, I have to pull out all users one request.
+             -> It's save the 'database cost' and it's clean to pretty as well
+             */
+            
+            // first try to get a reference exsisting user array
+                // if it doesn't exist when they create it
+                // if it dose exist I gonna append to it
+                // get reference from database
+                // the child I care about is 'users'
+            self.database.child("users").observeSingleEvent(of: DataEventType.value) { snapShot, previousKey in
+                // snapShot is not the value itself
+                if var userCollection = snapShot.value as? [[String: String]] {
+                    // append to user dictionary
+                        // does exist
+                    let newElement: [String: String] = [
+                            // key: value
+                            "name": userInfo.firstName + " " + userInfo.lastName,
+                            "email": userInfo.safeEmail
+                    ]
+                    
+                    userCollection.append(newElement)
+                    
+                    self.database.child("users").setValue(userCollection) { error, dbReference in
+                        guard error == nil else {
+                            compltion(false)
+                            return
+                        }
+                        print("💜 database reference result : \(dbReference)")
+                        compltion(true)
+                    }
+                } else {
+                    // create that array
+                        // doesn't exist
+                        // this is thing that I will add to firebase for that users reference
+                    let newCollection: [[String: String]] = [
+                        [
+                            // key: value
+                            "name": userInfo.firstName + " " + userInfo.lastName,
+                            "email": userInfo.safeEmail
+                        ]
+                    ]
+                    
+                    self.database.child("users").setValue(newCollection) { error, dbReference in
+                        guard error == nil else {
+                            compltion(false)
+                            return
+                        }
+                        print("💜 database reference result : \(dbReference)")
+                    }
+                    // root completion
+                    compltion(true)
+                }
+            }
         }
     }
 }
