@@ -257,7 +257,7 @@ class LoginViewController: UIViewController {
                 // if i wanna to show these data which somewhere in the device, i can cache data use by userDefault
             UserDefaults.standard.setValue(email, forKey: "email")
             
-            print("Success to logged in user: \(user)")
+            print("💜 Success to logged in user: \(user)")
             
             strongSelf.navigationController?.dismiss(animated: true, completion: nil)
         }

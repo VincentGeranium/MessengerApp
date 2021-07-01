@@ -39,6 +39,7 @@ class ProfileViewController: UIViewController {
          c.f : email instance value must do typeCast, convert to String type because this value using in the 'safeEmail' function
          */
         guard let email = UserDefaults.standard.value(forKey: "email") as? String else {
+            print("can't get user email from device")
             return nil
         }
         
