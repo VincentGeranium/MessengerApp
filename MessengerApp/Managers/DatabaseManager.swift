@@ -164,4 +164,23 @@ extension DatabaseManager {
             }
         }
     }
+
+    /// get user data
+     ///  - Parameters:
+     ///  - completion: send back results with a Array of those dictionary otherwise it will hand an error back and hole tihing will return void
+     ///  - Result<[[String: String]]>: [[String: String]] is same format with firebase user data format,  it's String key - String value,
+     /// -  Result<Error>: It will handle an error back
+    public func getAllUsers(completion: @escaping (Result<[[String: String]], Error>) -> Void) {
+        database.child("users").observeSingleEvent(of: .value) { snapShot in
+            guard let value = snapShot.value as? [[String: String]] else {
+                completion(.failure(DatabaseErrors.failedToFetch))
+                return
+            }
+            
+            // suffice what I need to do in here for the database manager
+            
+            // if pass the guard statments, simply pass the value which hand back all the user
+            completion(.success(value))
+        }
+    }
 }
