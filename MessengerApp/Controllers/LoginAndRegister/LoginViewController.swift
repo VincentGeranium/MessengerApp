@@ -246,6 +246,14 @@ class LoginViewController: UIViewController {
             }
             
             guard let result = authResult, error == nil else {
+                DispatchQueue.main.async {
+                    let alertVC = UIAlertController(title: "Failed to log in", message: "Check again your email or password", preferredStyle: .alert)
+                    
+                    let action = UIAlertAction(title: "OK", style: .default, handler: nil)
+                    alertVC.addAction(action)
+                    
+                    self?.present(alertVC, animated: true, completion: nil)
+                }
                 print("Faild logged in with email: \(email)")
                 return
             }

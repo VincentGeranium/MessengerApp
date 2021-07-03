@@ -23,6 +23,9 @@ class NewConversationViewController: UIViewController {
     /// This property 's default value is empty.
     private var users = [[String: String]]()
     
+    /// results is similar array and call it results and this is gonna hold the result that will be shown in the tableview
+    private var results = [[String: String]]()
+    
     
     /// Check the users array, If the users array is empty which will signify the fetch has completed
     /// The edge case of that is if this app only has one user this is gonna be  empty because will gonna filter out the current searching user. So, always want to check.
@@ -57,6 +60,12 @@ class NewConversationViewController: UIViewController {
 
     override func viewDidLoad() {
         super.viewDidLoad()
+        view.addSubview(noResultLabel)
+        view.addSubview(resultTableView)
+        
+        resultTableView.delegate = self
+        resultTableView.dataSource = self
+        
         searchBar.delegate = self
 //        self.dismissVCDelegate = self
         view.backgroundColor = .systemGray
@@ -64,7 +73,19 @@ class NewConversationViewController: UIViewController {
         // don't need to munually try to frame in it, the position.
         navigationController?.navigationBar.topItem?.titleView = searchBar
         navigationItem.rightBarButtonItem = cancelButton()
+        
         searchBar.becomeFirstResponder()
+    }
+    
+    // gonna set the frame
+    override func viewDidLayoutSubviews() {
+        super.viewDidLayoutSubviews()
+        // c.f : view.bounds meaning which is the entire of screen
+        resultTableView.frame = view.bounds
+        noResultLabel.frame = CGRect(x: view.width/4,
+                                     y: (view.height-200)/2,
+                                     width: view.width/2,
+                                     height: 200)
     }
     
     private func cancelButton() -> UIBarButtonItem {
@@ -77,6 +98,30 @@ class NewConversationViewController: UIViewController {
     @objc private func dismissSelf() {
         dismiss(animated: true, completion: nil)
     }
+}
+
+extension NewConversationViewController: UITableViewDelegate, UITableViewDataSource {
+    func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
+        return results.count
+    }
+    
+    func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
+        let cell = tableView.dequeueReusableCell(withIdentifier: "cell", for: indexPath)
+        // text labels text be the elements in results
+        // results is an array so, have to get the nth element at that position.
+        // and then pull out the value useing key that i want to show in tabel view.
+            // c.f : meaning of 'nth' is 'used to describe the most recent in a long series of things, when you do not know how many there are'
+        
+        cell.textLabel?.text = results[indexPath.row]["name"]
+        return cell
+    }
+    
+    func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
+        tableView.deselectRow(at: indexPath, animated: true)
+        // start conversation
+    }
+    
+    
 }
 
 extension NewConversationViewController: UISearchBarDelegate {
@@ -92,6 +137,18 @@ extension NewConversationViewController: UISearchBarDelegate {
             
             return
         }
+        
+        // when user tapped enter or search button, have to get rid of keyboard
+        // this will get rid of the keyboard inbounds searchBar parameter
+        searchBar.resignFirstResponder()
+        
+        // reason of why results elements are all remove
+        /*
+         -> every time a new search is done, have to remove result.
+         if not remove the data(elements) of results array table view will show all the data which stacked in results array.
+         */
+            
+        results.removeAll()
         
         // when user tapped return key or enter the 'spinner' will be showing
             // ‼️ this 'view' is view cotroller's view.
@@ -123,6 +180,9 @@ extension NewConversationViewController: UISearchBarDelegate {
             // -> use fetch function from my database manager
             
             // have the users I can essentially take the user's initial search term and filter out the user that I wanna show in the table view based on what they typed in
+            
+                // c.f : term = query
+            filterUsers(with: query)
         }
         else {
             // if not: fetch then filter.
@@ -133,22 +193,59 @@ extension NewConversationViewController: UISearchBarDelegate {
              
              -> Because I need to reference itself to save result
              */
-            DatabaseManager.shared.getAllUsers { [weak self] result in
+            DatabaseManager.shared.getAllUsers { [weak self] results in
                 guard let strongSelf = self else {
                     return
                 }
                 
-                switch result {
+                switch results {
                 case .success(let userCollection):
+                    self?.hasFetched = true
                     self?.users = userCollection
+                    self?.filterUsers(with: query)
                 case .failure(let error):
                     print("Failed to get user: \(error)")
                 }
                 
             }
         }
-        
+    }
+    // basically pass term from the searchUser's query parameter
+    func filterUsers(with term: String) {
         // update UI: either show result or show 'no result' text label
+        guard hasFetched else {
+            return
+        }
+        
+        self.spinner.dismiss()
+        
+        let results: [[String: String]] = self.users.filter {
+            // the $0 is enrty of Arrary that contain String Key and String Value's Dictionary.
+                // c.f : [String: String] => $0
+            guard let name = $0["name"]?.lowercased() else {
+                return false
+            }
+            return name.hasPrefix(term.lowercased())
+        }
+        self.results = results
+        
+        updataUI()
     }
     
+    // this function is based on if there are result. will shown in the table view or not shown no result lable
+    func updataUI() {
+        if results.isEmpty {
+            // if results array is empty.
+            self.noResultLabel.isHidden = false
+            self.resultTableView.isHidden = true
+        }
+        else {
+            // otherwise opposite with the if statement block code.
+            self.noResultLabel.isHidden = true
+            self.resultTableView.isHidden = false
+            
+            // refresh data for tableView
+            self.resultTableView.reloadData()
+        }
+    }
 }
