@@ -43,10 +43,12 @@ extension DatabaseManager {
     public func userExist(with email: String,
                           completion: @escaping((Bool) -> Void)) {
         
-        var safeEmail: String {
-            let safeEmail = email.replacingOccurrences(of: ".", with: "-")
-            return safeEmail
-        }
+//        var safeEmail: String {
+//            let safeEmail = email.replacingOccurrences(of: ".", with: "-")
+//            return safeEmail
+//        }
+        
+        let safeEmail = DatabaseManager.safeEmail(emailAddress: email)
         
         // getting data out of the database, this is important things than other pieces.
         // c.f : firebase database is allow to observe the value change any enrty
@@ -55,7 +57,7 @@ extension DatabaseManager {
         database.child(safeEmail).observeSingleEvent(of: .value) { snapshot, _ in
             // c.f : snapshot is Any so have to cast what u want
             // if pass the foundEmail guard let statement is the meaning about user email is exist.
-            guard snapshot.value as? String != nil else {
+            guard snapshot.value as? [String: Any] != nil else {
                 // email dose not exist, we can create new accout
                 completion(false)
                 return
@@ -71,6 +73,8 @@ extension DatabaseManager {
     /// - Parameter userInfo: infomation about user for insert to database.
     public func insertUser(with userInfo: UserInfo, compltion: @escaping (Bool) -> Void) {
         
+       
+        
         
         // insert database
         // key is user email
@@ -85,7 +89,12 @@ extension DatabaseManager {
                 // 'users' is array of users which has just 'name' which has both the first name and last name and 'email'
                 // I gonna check first, if colletcion exists -> append other else (dosen't exists) -> create
                 // 'newCollection' only occur for the very first user thag sign up
-        ]) { error, _ in
+        ]) { [weak self] error, _ in
+            
+            guard let strongSelf = self else {
+                return
+            }
+            
             guard error == nil else {
                 print("failed to write to database")
                 compltion(false)
@@ -118,7 +127,7 @@ extension DatabaseManager {
                 // if it dose exist I gonna append to it
                 // get reference from database
                 // the child I care about is 'users'
-            self.database.child("users").observeSingleEvent(of: DataEventType.value) { snapShot, previousKey in
+            strongSelf.database.child("users").observeSingleEvent(of: DataEventType.value) { snapShot, previousKey in
                 // snapShot is not the value itself
                 if var userCollection = snapShot.value as? [[String: String]] {
                     // append to user dictionary
@@ -131,7 +140,7 @@ extension DatabaseManager {
                     
                     userCollection.append(newElement)
                     
-                    self.database.child("users").setValue(userCollection) { error, dbReference in
+                    strongSelf.database.child("users").setValue(userCollection) { error, dbReference in
                         guard error == nil else {
                             compltion(false)
                             return
@@ -139,7 +148,8 @@ extension DatabaseManager {
                         print("💜 database reference result : \(dbReference)")
                         compltion(true)
                     }
-                } else {
+                }
+                else {
                     // create that array
                         // doesn't exist
                         // this is thing that I will add to firebase for that users reference
@@ -151,15 +161,19 @@ extension DatabaseManager {
                         ]
                     ]
                     
-                    self.database.child("users").setValue(newCollection) { error, dbReference in
+                    strongSelf.database.child("users").setValue(newCollection) { error, dbReference in
                         guard error == nil else {
                             compltion(false)
                             return
                         }
                         print("💜 database reference result : \(dbReference)")
+                        compltion(true)
                     }
                     // root completion
-                    compltion(true)
+                    /*
+                     ‼️ 
+                     */
+//                    compltion(true)
                 }
             }
         }
