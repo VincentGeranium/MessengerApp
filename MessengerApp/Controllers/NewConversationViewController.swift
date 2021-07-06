@@ -13,7 +13,10 @@ protocol NewConversationViewControllerDelegate {
 }
 
 class NewConversationViewController: UIViewController {
-//    var dismissVCDelegate: DissmissBarButtonDelegate?
+    
+    /* this closure will be invoked with the collection of data sending back.*/
+    /// c.f :  it's gonna be a closure that takes dictionary which String type key and value, not a arrry and it's return void and this whole things wrap prarenthesis for make optional
+    public var completion: (([String: String]) -> (Void))?
     
     private let spinner: JGProgressHUD = JGProgressHUD(style: .dark)
     
@@ -68,7 +71,7 @@ class NewConversationViewController: UIViewController {
         
         searchBar.delegate = self
 //        self.dismissVCDelegate = self
-        view.backgroundColor = .systemGray
+        view.backgroundColor = .white
         // put the searchBar imply into the navigatiaonBar
         // don't need to munually try to frame in it, the position.
         navigationController?.navigationBar.topItem?.titleView = searchBar
@@ -119,6 +122,26 @@ extension NewConversationViewController: UITableViewDelegate, UITableViewDataSou
     func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
         tableView.deselectRow(at: indexPath, animated: true)
         // start conversation
+            // c.f : given postion => indexPaht.row
+        
+        // the dictionary in here at that given postion
+        let targetUserData = results[indexPath.row]
+        
+        // what's gonna do in this block
+        /*
+         passes data back to the conversation list and then the converstation list automatically present or push on the chat view controller to start this new conversataion
+         
+         the other logicall handle
+         -> if already have converstatio with someone that already converstation started, don't wanna duplicate conversation with the someone.
+         -> if user tapped privious conversation tapped, have to get before converstaion otherwise make new converstatio view controller
+         */
+        
+        dismiss(animated: true) { [weak self] in
+            self?.completion?(targetUserData)
+        }
+        
+    
+        
     }
     
     

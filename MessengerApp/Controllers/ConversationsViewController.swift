@@ -8,6 +8,7 @@
 import UIKit
 import FirebaseAuth
 import JGProgressHUD
+import MessageKit
 
 /// Checked the User sign in, based UserDefult and if user have sign in show conversation screen or not show login screen,
 /// Initialization ViewController, RootViewController.
@@ -100,8 +101,44 @@ class ConversationsViewController: UIViewController {
         /* this vc is root vc of navigation because when user tapped compose button, why reason of make new converstion so make new navigation vc and root vc is new converstion vc
          */
         let vc = NewConversationViewController()
+        // accese the vc's completion closure
+        vc.completion = { [weak self] result in
+            print("user's info that I search and tapped : \(result)")
+            self?.createNewConversation(result: result)
+            
+        }
+        
         let naviVC = UINavigationController(rootViewController: vc)
         present(naviVC, animated: true, completion: nil)
+    }
+    
+    // this func is getting back data from the 'result' -> this func prarmeter will be result.
+    // the result type is [String: String]
+    private func createNewConversation(result: [String: String]) {
+        
+        guard let name = result["name"], let email = result["email"] else {
+            return
+        }
+        
+        
+        // essentially push the chat view controller
+        
+        // this gonna be push view controller
+        /*
+         what i wanna do in here
+         is not actually create a database entry when the user taps this to create a new converstation.
+         
+         Reason is when start converstaion I don't wanna keep it in my db storage unless at minimum one message has been sent
+         So, adis is good practices save money on db cost and be an empty converstaion isn't per se useful.
+         
+         */
+        let vc = ChatViewController(with: email)
+        // passing in the new user name
+        vc.isNewConversation = true
+        vc.title = name
+        vc.navigationItem.largeTitleDisplayMode = .never
+        navigationController?.pushViewController(vc, animated: true)
+
     }
 }
 
@@ -125,11 +162,22 @@ extension ConversationsViewController: UITableViewDelegate, UITableViewDataSourc
         // implement 'didSelectRowAt' function
         tableView.deselectRow(at: indexPath, animated: true)
         
-        let vc = ChatViewController()
-        vc.title = "Eun Chae Lee"
-        vc.navigationItem.largeTitleDisplayMode = .never
-        // push this vc on to the stack animation
-        navigationController?.pushViewController(vc, animated: true)
+        let newConversatiaonVC = NewConversationViewController()
+        newConversatiaonVC.completion = { [weak self] result in
+            guard let strongSelf = self else {
+                return
+            }
+            
+            guard let email = result["email"] else {
+                return
+            }
+            
+            let vc = ChatViewController(with: email)
+            vc.title = "Eun Chae Lee"
+            vc.navigationItem.largeTitleDisplayMode = .never
+            // push this vc on to the stack animation
+            self?.navigationController?.pushViewController(vc, animated: true)
+        }
     }
     
 }

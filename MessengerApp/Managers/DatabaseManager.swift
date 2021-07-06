@@ -198,3 +198,27 @@ extension DatabaseManager {
         }
     }
 }
+
+// MARK:- Sending messages / conversation
+extension DatabaseManager {
+    
+    /// Create a new convo with target user email and first message sent
+    public func createNewConversation(with otherUserEmail: String, firstMessage: Message_Type, completion: @escaping (Bool) -> Void) {
+        
+    }
+    
+    /// Fetchs and returns all convos for the user with passed in email
+    public func getAllConversation(for email: String, completion: @escaping (Result<String, Error>) -> Void) {
+        
+    }
+    
+    /// Get all message for a give convo
+    public func getAllMessagesForConvo(with id: String, completion: @escaping (Result<String, Error>) -> Void) {
+        
+    }
+    
+    /// Send a message with target convo and message
+    public func sendMessage(to convo: String, message: Message_Type, completion: @escaping (Bool) -> Void){
+        // can handle all the stuff in here in the database manager rather than doing all of that business logic in the view contorller
+    }
+}
