@@ -16,6 +16,7 @@ final class DatabaseManager {
     
     // reference of database
     // c.f : "private" is notation of nobody pull this property to externally.
+    // c.f :  what did I called as 'CS' term of this 'database'? -> instance, instance member of this class.
     private let database = Database.database().reference()
     
     // get user email
@@ -202,8 +203,94 @@ extension DatabaseManager {
 // MARK:- Sending messages / conversation
 extension DatabaseManager {
     
+    /*
+     ‼️ Notation about this extension
+     
+     Basically the schema that I want in the database needs to scale two ways.
+     1. Observe all the conversation for a given user.
+     -> So, as new conversation comes in, I want update the conversation list by real time
+     
+     2. Observe given conversation
+     -> So, whenever a new message comes in that also update real time
+     
+     About schema
+     The schema that I have in mind it looks something like that.
+     Also updates real time.
+     
+     schema look like, check down below code.
+     
+     This schema root element is value of 'conversation_id' that 'unique id'
+     (down below schema code I will give example unique id that random string.)
+     
+     c.f : 'content' element will content these three thing which the text, photo url, video url.
+            So, the content element must variable string.
+     
+     "asdaskdj" => {
+        "message": [
+            {
+                "id": String,
+                "type": text, photo, video,
+                "content": String,
+                "date": Date(),
+                "sender_email": String,
+                "isRead": true/false,
+            }
+        ]
+     }
+     
+     Each of these element is will be in each user
+     So each user which every users will have conversation key with
+     array of this minimal conversation object that below of schema code.
+     
+     The object has not message data with exception of the latest message.
+     
+     conversation => [
+        [
+            "conversation_id": "unique id"
+            "other_user_email": "email"
+            "latest_message": => {
+                "date": Date(),
+                "latest_message": "latest_message",
+                "is_read": true/false,
+            }
+        ],
+     ]
+     */
+    
     /// Create a new convo with target user email and first message sent
     public func createNewConversation(with otherUserEmail: String, firstMessage: Message_Type, completion: @escaping (Bool) -> Void) {
+        // current cache has email that not the 'safe email'
+        guard let currentEmail = UserDefaults.standard.value(forKey: "email") as? String else {
+            return
+        }
+        
+        // What is purpose of the 'safe email'?
+            // The safe email is what the database needs because I can't have certain characters as keys
+        let safeEamil = DatabaseManager.safeEmail(emailAddress: currentEmail)
+        
+        // What is purpose of observe 'safeEmail' that root value or current user?
+            // because what I care about this convo for this user
+        let ref = database.child("\(safeEamil)")
+        ref.observeSingleEvent(of: .value) { snapShot in
+            guard let userNode = snapShot.value as? [String: Any] else {
+                completion(false)
+                print("user not found")
+                return
+            }
+            
+            // Once I found the user that 'userNode' will be excute which conversations code.
+            // conversation should be something in user node with a key of conversations this should be return to array of dictories because if I recall per the schema that root of 'conversation', whole conversation points array and dictionary has keys and values
+            /*
+             ‼️ the conversations instance which is down below.
+             I make as a variable instance, because if do have this conversation pointer, gonna append new convo to it
+             */
+            if var conversations = userNode["conversations"] as? [[String: Any]] {
+                // convo array exists for current user, should append
+            }
+            else {
+                // otherwise create new convo
+            }
+        }
         
     }
     
