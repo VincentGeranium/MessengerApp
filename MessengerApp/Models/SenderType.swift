@@ -10,8 +10,8 @@ import MessageKit
 
 struct Sender_Type: SenderType {
     // basic instance of SenderType protocol
-    var senderId: String    
-    var displayName: String
+    public var senderId: String
+    public var displayName: String
     // extend Sender_Type
-    var photoURL: String
+    public var photoURL: String
 }

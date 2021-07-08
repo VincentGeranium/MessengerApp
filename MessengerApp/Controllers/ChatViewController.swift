@@ -11,7 +11,7 @@ import InputBarAccessoryView
 
 class ChatViewController: MessagesViewController {
     
-    public static let dateFormatter: DateFormatter = {
+   public static let dateFormatter: DateFormatter = {
         let formatter = DateFormatter()
         formatter.dateStyle = .medium
         formatter.timeStyle = .long
@@ -116,12 +116,14 @@ extension ChatViewController: InputBarAccessoryViewDelegate {
          */
         let dateString = Self.dateFormatter.string(from: Date())
         
-        guard let currentUserEmail = UserDefaults.standard.value(forKey: "email") else {
+        guard let currentUserEmail = UserDefaults.standard.value(forKey: "email") as? String else {
             // here make this return nil so basically if the current user email is not cast, just return gonna return nil
             return nil
         }
         
-        let newIdentifier = "\(otherUserEmail)_\(currentUserEmail)_\(dateString)"
+        let safeCurrentEmail = DatabaseManager.safeEmail(emailAddress: currentUserEmail)
+        
+        let newIdentifier = "\(otherUserEmail)_\(safeCurrentEmail)_\(dateString)"
         print("create message id: \(newIdentifier)")
         return newIdentifier
     }

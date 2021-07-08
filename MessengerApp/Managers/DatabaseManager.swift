@@ -39,15 +39,15 @@ extension DatabaseManager {
     /*
      ‼️ why this function have to exist completion handler?
      -> the function actually get data out of database as synchronize.
-    */
+     */
     
     public func userExist(with email: String,
                           completion: @escaping((Bool) -> Void)) {
         
-//        var safeEmail: String {
-//            let safeEmail = email.replacingOccurrences(of: ".", with: "-")
-//            return safeEmail
-//        }
+        //        var safeEmail: String {
+        //            let safeEmail = email.replacingOccurrences(of: ".", with: "-")
+        //            return safeEmail
+        //        }
         
         let safeEmail = DatabaseManager.safeEmail(emailAddress: email)
         
@@ -74,22 +74,22 @@ extension DatabaseManager {
     /// - Parameter userInfo: infomation about user for insert to database.
     public func insertUser(with userInfo: UserInfo, compltion: @escaping (Bool) -> Void) {
         
-       
+        
         
         
         // insert database
         // key is user email
         // this is insert query.
-            // make the root entry
+        // make the root entry
         database.child(userInfo.safeEmail).setValue([
             "first_name": userInfo.firstName,
             "last_name": userInfo.lastName,
             // completion for the failer
-                // if error is 'nil' meaning that 'nothing went wrong'
-                // after passing error statement, make childe nood name of 'users'
-                // 'users' is array of users which has just 'name' which has both the first name and last name and 'email'
-                // I gonna check first, if colletcion exists -> append other else (dosen't exists) -> create
-                // 'newCollection' only occur for the very first user thag sign up
+            // if error is 'nil' meaning that 'nothing went wrong'
+            // after passing error statement, make childe nood name of 'users'
+            // 'users' is array of users which has just 'name' which has both the first name and last name and 'email'
+            // I gonna check first, if colletcion exists -> append other else (dosen't exists) -> create
+            // 'newCollection' only occur for the very first user thag sign up
         ]) { [weak self] error, _ in
             
             guard let strongSelf = self else {
@@ -107,16 +107,16 @@ extension DatabaseManager {
              
              one root child pointer is 'users'
              
-            users ->    [
-                            [
-                                "name":
-                                "safe_email":
-                            ],
-                            [
-                                "name":
-                                "safe_email":
-                            ],
-                        ]
+             users ->    [
+             [
+             "name":
+             "safe_email":
+             ],
+             [
+             "name":
+             "safe_email":
+             ],
+             ]
              
              why do this?
              -> when users try to start conversation, I have to pull out all users one request.
@@ -124,19 +124,19 @@ extension DatabaseManager {
              */
             
             // first try to get a reference exsisting user array
-                // if it doesn't exist when they create it
-                // if it dose exist I gonna append to it
-                // get reference from database
-                // the child I care about is 'users'
+            // if it doesn't exist when they create it
+            // if it dose exist I gonna append to it
+            // get reference from database
+            // the child I care about is 'users'
             strongSelf.database.child("users").observeSingleEvent(of: DataEventType.value) { snapShot, previousKey in
                 // snapShot is not the value itself
                 if var userCollection = snapShot.value as? [[String: String]] {
                     // append to user dictionary
-                        // does exist
+                    // does exist
                     let newElement: [String: String] = [
-                            // key: value
-                            "name": userInfo.firstName + " " + userInfo.lastName,
-                            "email": userInfo.safeEmail
+                        // key: value
+                        "name": userInfo.firstName + " " + userInfo.lastName,
+                        "email": userInfo.safeEmail
                     ]
                     
                     userCollection.append(newElement)
@@ -152,8 +152,8 @@ extension DatabaseManager {
                 }
                 else {
                     // create that array
-                        // doesn't exist
-                        // this is thing that I will add to firebase for that users reference
+                    // doesn't exist
+                    // this is thing that I will add to firebase for that users reference
                     let newCollection: [[String: String]] = [
                         [
                             // key: value
@@ -174,17 +174,17 @@ extension DatabaseManager {
                     /*
                      ‼️ 
                      */
-//                    compltion(true)
+                    //                    compltion(true)
                 }
             }
         }
     }
-
+    
     /// get user data
-     ///  - Parameters:
-     ///  - completion: send back results with a Array of those dictionary otherwise it will hand an error back and hole tihing will return void
-     ///  - Result<[[String: String]]>: [[String: String]] is same format with firebase user data format,  it's String key - String value,
-     /// -  Result<Error>: It will handle an error back
+    ///  - Parameters:
+    ///  - completion: send back results with a Array of those dictionary otherwise it will hand an error back and hole tihing will return void
+    ///  - Result<[[String: String]]>: [[String: String]] is same format with firebase user data format,  it's String key - String value,
+    /// -  Result<Error>: It will handle an error back
     public func getAllUsers(completion: @escaping (Result<[[String: String]], Error>) -> Void) {
         database.child("users").observeSingleEvent(of: .value) { snapShot in
             guard let value = snapShot.value as? [[String: String]] else {
@@ -223,19 +223,19 @@ extension DatabaseManager {
      (down below schema code I will give example unique id that random string.)
      
      c.f : 'content' element will content these three thing which the text, photo url, video url.
-            So, the content element must variable string.
+     So, the content element must variable string.
      
      "asdaskdj" => {
-        "message": [
-            {
-                "id": String,
-                "type": text, photo, video,
-                "content": String,
-                "date": Date(),
-                "sender_email": String,
-                "isRead": true/false,
-            }
-        ]
+     "message": [
+     {
+     "id": String,
+     "type": text, photo, video,
+     "content": String,
+     "date": Date(),
+     "sender_email": String,
+     "is_read": true/false,
+     }
+     ]
      }
      
      Each of these element is will be in each user
@@ -245,15 +245,15 @@ extension DatabaseManager {
      The object has not message data with exception of the latest message.
      
      conversation => [
-        [
-            "conversation_id": "unique id"
-            "other_user_email": "email"
-            "latest_message": => {
-                "date": Date(),
-                "latest_message": "latest_message",
-                "is_read": true/false,
-            }
-        ],
+     [
+     "conversation_id": "unique id"
+     "other_user_email": "email"
+     "latest_message": => {
+     "date": Date(),
+     "latest_message": "latest_message",
+     "is_read": true/false,
+     }
+     ],
      ]
      */
     
@@ -265,31 +265,213 @@ extension DatabaseManager {
         }
         
         // What is purpose of the 'safe email'?
-            // The safe email is what the database needs because I can't have certain characters as keys
+        // The safe email is what the database needs because I can't have certain characters as keys
         let safeEamil = DatabaseManager.safeEmail(emailAddress: currentEmail)
         
         // What is purpose of observe 'safeEmail' that root value or current user?
-            // because what I care about this convo for this user
+        // because what I care about this convo for this user
         let ref = database.child("\(safeEamil)")
         ref.observeSingleEvent(of: .value) { snapShot in
-            guard let userNode = snapShot.value as? [String: Any] else {
+            /*
+             c.f:
+             Why did define by variable?
+             Because I gonna add a new key into here.
+             */
+            guard var userNode = snapShot.value as? [String: Any] else {
                 completion(false)
                 print("user not found")
                 return
             }
             
+            let messageDate = firstMessage.sentDate
+            
+            /*
+             c.f :
+             How can calling the 'dateFormatter' instance from the 'ChatViewController'?
+             Because when I defined the 'dateFormatter', make by 'public static'(Type property)
+             So, can calling from the 'ChatViewController'
+             */
+            let dateString = ChatViewController.dateFormatter.string(from: messageDate)
+            
+            var message = ""
+            
+            switch firstMessage.kind {
+            case .text(let messageText):
+                message = messageText
+            case .attributedText(_):
+                break
+            case .photo(_):
+                break
+            case .video(_):
+                break
+            case .location(_):
+                break
+            case .emoji(_):
+                break
+            case .audio(_):
+                break
+            case .contact(_):
+                break
+            case .linkPreview(_):
+                break
+            case .custom(_):
+                break
+            }
+            
+            let conversationID = "conversation_\(firstMessage.messageId)"
+                
+                
+                /* ‼️ c.f :
+                If make instance type have 'Any', must insert type explicit and certainly.
+                Because complier dosen't know about 'Any', the 'Any' can be all type like bool, Date(), String, ect....
+                So, complier wanna insert explicit type.
+                
+                ‼️ c.f :
+                Why did I definition outside of if-else state?
+                Because enve if I have conversation array before
+                I'm still gonna want to creat this and append it to that array
+                */
+                let newConversationData: [String: Any] = [
+                    "id": conversationID,
+                    "other_user_email": otherUserEmail,
+                    "latest_message": [
+                        "date": dateString,
+                        "message": message,
+                        "is_read": false
+                    ]
+                ]
+            
             // Once I found the user that 'userNode' will be excute which conversations code.
             // conversation should be something in user node with a key of conversations this should be return to array of dictories because if I recall per the schema that root of 'conversation', whole conversation points array and dictionary has keys and values
             /*
              ‼️ the conversations instance which is down below.
-             I make as a variable instance, because if do have this conversation pointer, gonna append new convo to it
+             I make instance which 'conversations' as a variable, why did I make variable? because if I do have this conversation pointer, I'm gonna append a new convo to it
              */
             if var conversations = userNode["conversations"] as? [[String: Any]] {
                 // convo array exists for current user, should append
+                
+                // description: taking conversation data
+                conversations.append(newConversationData)
+                
+                // description: update 'user node conversation' to point to 'conversations'
+                // c.f: why did i assign conversations to userNode? because I did append new conversation.
+                userNode["conversations"] = conversations
+                
+                ref.setValue(userNode) { [weak self] error, databaseRef in
+                    guard error == nil else {
+                        completion(false)
+                        return
+                    }
+                    // c.f: completion parameter of this function dose take root function(ref.setValue) parameter the completion
+                    self?.finishCreateConversation(conversationID: conversationID,
+                                                  firstMessage: firstMessage,
+                                                  completion: completion)
+                    print("database Ref result in 'if' block from root function's that the 'createNewConversation' : \(databaseRef)")
+                
+                }
             }
             else {
-                // otherwise create new convo
+                // convo array dose not exist, create new convo.
+                
+                /*
+                 Description:
+                 Basically in userNode create this new conversation piece and assign it to array
+                 */
+                userNode["conversations"] = [
+                    newConversationData
+                ]
+                
+                // c.f: the 'ref' is reference to the current users node
+                // Description: insert in database
+                ref.setValue(userNode) { [weak self] error, databaseRef in
+                    guard error == nil else {
+                        completion(false)
+                        return
+                    }
+                    
+                    // c.f: completion parameter of this function dose take root function(ref.setValue) parameter the completion
+                    self?.finishCreateConversation(conversationID: conversationID,
+                                                  firstMessage: firstMessage,
+                                                  completion: completion)
+                    
+                    print("database Ref result in 'else' block from root function's that the 'createNewConversation' : \(databaseRef)")
+                }
             }
+        }
+    }
+    
+    /*
+     Description:
+     The reason of I want to do it in here is because I can call this function in both of these if-else cases and duplicate less code.
+     And it's private because this is private to this class
+     */
+    private func finishCreateConversation(conversationID: String, firstMessage: Message_Type, completion: @escaping (Bool) -> Void) {
+//        {
+//            "id": String,
+//            "type": text, photo, video,
+//            "content": String,
+//            "date": Date(),
+//            "sender_email": String,
+//            "is_read": true/false,
+//        }
+        
+        let messageDate = firstMessage.sentDate
+        let dateString = ChatViewController.dateFormatter.string(from: messageDate)
+        
+        var message = ""
+        
+        switch firstMessage.kind {
+        case .text(let messageText):
+            message = messageText
+        case .attributedText(_):
+            break
+        case .photo(_):
+            break
+        case .video(_):
+            break
+        case .location(_):
+            break
+        case .emoji(_):
+            break
+        case .audio(_):
+            break
+        case .contact(_):
+            break
+        case .linkPreview(_):
+            break
+        case .custom(_):
+            break
+        }
+        
+        // ‼️ c.f: currentUserEamil data is pull out from UserDefault
+        guard let currentUserEmail = UserDefaults.standard.value(forKey: "email") as? String else {
+            completion(false)
+            return
+        }
+        
+        // ‼️ c.f: Create message instance to match the schema that I have defined.
+        let collectionMessage: [String: Any] = [
+            "id": firstMessage.messageId,
+            "type": firstMessage.kind.messageKidString,
+            "content": message,
+            "date": dateString,
+            "sender_email": currentUserEmail,
+            "is_read": false
+        ]
+        
+        let value: [String: Any] = [
+            "message": [
+                collectionMessage
+            ]
+        ]
+        
+        database.child("\(conversationID)").setValue(value) { error, databaseRef in
+            guard error == nil else {
+                completion(false)
+                return
+            }
+            print("database Ref result in trailing closure block from 'finishCreateConversation' function : \(databaseRef)")
+            completion(true)
         }
         
     }
