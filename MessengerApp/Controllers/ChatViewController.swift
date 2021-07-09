@@ -72,6 +72,7 @@ class ChatViewController: MessagesViewController {
 }
 
 extension ChatViewController: InputBarAccessoryViewDelegate {
+    
     func inputBar(_ inputBar: InputBarAccessoryView, didPressSendButtonWith text: String) {
         guard !text.replacingOccurrences(of: " ", with: "").isEmpty,
               let selfSender = self.selfSender,
@@ -88,8 +89,13 @@ extension ChatViewController: InputBarAccessoryViewDelegate {
                                        messageId: messageId,
                                        sentDate: Date(),
                                        kind: .text(text))
+            
             // pass the message to this DatabaseManager call
-            DatabaseManager.shared.createNewConversation(with: otherUserEmail, firstMessage: message) { result in
+            /*
+             Description:
+             When create new convo, title of the screen will be the other users name
+             */
+            DatabaseManager.shared.createNewConversation(with: otherUserEmail, name: self.title ?? "User", firstMessage: message) { result in
                 if result == true {
                     print("message sent")
                 }
@@ -116,6 +122,7 @@ extension ChatViewController: InputBarAccessoryViewDelegate {
          */
         let dateString = Self.dateFormatter.string(from: Date())
         
+        // c.f: currentUserEmail should be 'String' type. So do typecasting use 'as?'
         guard let currentUserEmail = UserDefaults.standard.value(forKey: "email") as? String else {
             // here make this return nil so basically if the current user email is not cast, just return gonna return nil
             return nil

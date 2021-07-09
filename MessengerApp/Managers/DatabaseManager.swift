@@ -258,7 +258,7 @@ extension DatabaseManager {
      */
     
     /// Create a new convo with target user email and first message sent
-    public func createNewConversation(with otherUserEmail: String, firstMessage: Message_Type, completion: @escaping (Bool) -> Void) {
+    public func createNewConversation(with otherUserEmail: String, name: String, firstMessage: Message_Type, completion: @escaping (Bool) -> Void) {
         // current cache has email that not the 'safe email'
         guard let currentEmail = UserDefaults.standard.value(forKey: "email") as? String else {
             return
@@ -334,6 +334,7 @@ extension DatabaseManager {
                 let newConversationData: [String: Any] = [
                     "id": conversationID,
                     "other_user_email": otherUserEmail,
+                    "name": name,
                     "latest_message": [
                         "date": dateString,
                         "message": message,
@@ -363,11 +364,12 @@ extension DatabaseManager {
                         return
                     }
                     // c.f: completion parameter of this function dose take root function(ref.setValue) parameter the completion
-                    self?.finishCreateConversation(conversationID: conversationID,
-                                                  firstMessage: firstMessage,
-                                                  completion: completion)
+                    self?.finishCreateConversation(name: name,
+                                                   conversationID: conversationID,
+                                                   firstMessage: firstMessage,
+                                                   completion: completion)
                     print("database Ref result in 'if' block from root function's that the 'createNewConversation' : \(databaseRef)")
-                
+                    
                 }
             }
             else {
@@ -390,9 +392,10 @@ extension DatabaseManager {
                     }
                     
                     // c.f: completion parameter of this function dose take root function(ref.setValue) parameter the completion
-                    self?.finishCreateConversation(conversationID: conversationID,
-                                                  firstMessage: firstMessage,
-                                                  completion: completion)
+                    self?.finishCreateConversation(name: name,
+                                                   conversationID: conversationID,
+                                                   firstMessage: firstMessage,
+                                                   completion: completion)
                     
                     print("database Ref result in 'else' block from root function's that the 'createNewConversation' : \(databaseRef)")
                 }
@@ -405,7 +408,7 @@ extension DatabaseManager {
      The reason of I want to do it in here is because I can call this function in both of these if-else cases and duplicate less code.
      And it's private because this is private to this class
      */
-    private func finishCreateConversation(conversationID: String, firstMessage: Message_Type, completion: @escaping (Bool) -> Void) {
+    private func finishCreateConversation(name: String, conversationID: String, firstMessage: Message_Type, completion: @escaping (Bool) -> Void) {
 //        {
 //            "id": String,
 //            "type": text, photo, video,
@@ -443,8 +446,8 @@ extension DatabaseManager {
             break
         }
         
-        // ‼️ c.f: currentUserEamil data is pull out from UserDefault
-        guard let currentUserEmail = UserDefaults.standard.value(forKey: "email") as? String else {
+        // ‼️ c.f: senderEmail data is pull out from UserDefault
+        guard let senderEmail = UserDefaults.standard.value(forKey: "email") as? String else {
             completion(false)
             return
         }
@@ -455,8 +458,9 @@ extension DatabaseManager {
             "type": firstMessage.kind.messageKidString,
             "content": message,
             "date": dateString,
-            "sender_email": currentUserEmail,
-            "is_read": false
+            "sender_email": senderEmail,
+            "is_read": false,
+            "name": name
         ]
         
         let value: [String: Any] = [
