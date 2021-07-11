@@ -25,6 +25,8 @@ final class DatabaseManager {
         let safeEmail = emailAddress.replacingOccurrences(of: ".", with: "-")
         return safeEmail
     }
+    
+    private init() { }
 }
 
 
@@ -334,7 +336,7 @@ extension DatabaseManager {
                 let newConversationData: [String: Any] = [
                     "id": conversationID,
                     "other_user_email": otherUserEmail,
-                    "name": name,
+                    "receiver_name": name,
                     "latest_message": [
                         "date": dateString,
                         "message": message,
@@ -460,7 +462,7 @@ extension DatabaseManager {
             "date": dateString,
             "sender_email": senderEmail,
             "is_read": false,
-            "name": name
+            "receiver_name": name
         ]
         
         let value: [String: Any] = [
@@ -480,8 +482,39 @@ extension DatabaseManager {
         
     }
     
+    /*
+     Why this function parameter which is completion that Reasult have 'Converstation'?
+     -> The reason of Reasult have 'Conversation' is when this completion 'Reasult' is get 'success' case bsck, wanna return the an array of 'Conversation' Models
+     */
     /// Fetchs and returns all convos for the user with passed in email
-    public func getAllConversation(for email: String, completion: @escaping (Result<String, Error>) -> Void) {
+    public func getAllConversation(for email: String, completion: @escaping (Result<[Conversation], Error>) -> Void) {
+        
+        /*
+         Description:
+         About oberve
+         -> The reason of added oberver method which is observe(_ eventType, with:)
+         -> Observe the value continuously the 'value'
+         -> And every time that the 'value' of this changes(a.k.a new converstion is created)
+         will get this completion handler call
+         */
+        
+        /// Attach the listener to firebase database
+        database.child("\(email)/conversations").observe(.value) { snapShot in
+            guard let value = snapShot.value as? [[String: Any]] else {
+                completion(.failure(DatabaseErrors.failedToFetch))
+                return
+            }
+            
+            // create conversation as an array
+            /*
+             c.f: about compactMap
+             
+             Why did I use compactMap?
+             Because the compactMap will the value convert to the dictionaries and than in it into models
+             */
+            
+        }
+        
         
     }
     

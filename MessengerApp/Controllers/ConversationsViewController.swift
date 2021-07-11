@@ -16,6 +16,9 @@ class ConversationsViewController: UIViewController {
     
     private let spinner: JGProgressHUD = JGProgressHUD(style: .dark)
     
+    // This instance is contain array of 'Conversation' models
+    private var conversation = [Conversation]()
+    
     private let tableView: UITableView = {
         let tableView: UITableView = UITableView()
         /*
@@ -26,8 +29,8 @@ class ConversationsViewController: UIViewController {
          if have converstation show tableview.
          */
         tableView.isHidden = true
-        tableView.register(UITableViewCell.self,
-                           forCellReuseIdentifier: "cell")
+        tableView.register(ConversationTableViewCell.self,
+                           forCellReuseIdentifier: ConversationTableViewCell.identifire)
         return tableView
     }()
     
@@ -54,9 +57,52 @@ class ConversationsViewController: UIViewController {
         view.addSubview(noConversationLabel)
         setupTableView()
         fetchConverstation()
-        //        vc.delegate = self
+        startListeningForConversation()
     }
     
+    /*
+     What dose this function?
+     -> 1. This function is going to attach a listener to that array in firebase database
+     -> 2. This function is going to every time added that new conversation
+     -> 3. This function is going to update table view the reason is (1, 2)
+     */
+    
+    private func startListeningForConversation() {
+        // get the user's email from UserDefault
+        guard let email = UserDefaults.standard.value(forKey: "email") as? String else {
+            return
+        }
+        
+        // transform the 'email' to 'safe email' -> the reason of can't use '., $, ect'
+        let safeEmail = DatabaseManager.safeEmail(emailAddress: email)
+        
+        /*
+         The reason of write '[weak self]'
+         -> It's gonna refer to the table view if need to refresh the data, don't wanna memory leak and making cause the memory cycle.
+        */
+        DatabaseManager.shared.getAllConversation(for: safeEmail) { [weak self] result in
+            // if result is success -> basically get conversation back
+            // if result is failure -> get error
+            
+            // if convo is empty, there no reason to update the 'table view'
+            // if convo is not empty, subsuite the this convo model to self convo
+            switch result {
+            case .success(let conversation):
+                guard !conversation.isEmpty else {
+                    return
+                }
+                
+                self?.conversation = conversation
+                
+            case .failure(let error):
+                print("failed to get convos, the reason is : \(error)")
+            }
+            
+        }
+        
+        
+        
+    }
     
     
     override func viewDidLayoutSubviews() {

@@ -139,12 +139,9 @@ extension NewConversationViewController: UITableViewDelegate, UITableViewDataSou
         dismiss(animated: true) { [weak self] in
             self?.completion?(targetUserData)
         }
-        
-    
-        
+              
     }
-    
-    
+
 }
 
 extension NewConversationViewController: UISearchBarDelegate {
@@ -229,10 +226,10 @@ extension NewConversationViewController: UISearchBarDelegate {
                 case .failure(let error):
                     print("Failed to get user: \(error)")
                 }
-                
             }
         }
     }
+    
     // basically pass term from the searchUser's query parameter
     func filterUsers(with term: String) {
         // update UI: either show result or show 'no result' text label
