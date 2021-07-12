@@ -68,6 +68,8 @@ class ConversationsViewController: UIViewController {
      */
     
     private func startListeningForConversation() {
+        // c.f : Added this new message to use that data manager stuff
+        
         // get the user's email from UserDefault
         guard let email = UserDefaults.standard.value(forKey: "email") as? String else {
             return
@@ -92,7 +94,22 @@ class ConversationsViewController: UIViewController {
                     return
                 }
                 
+                // assigned new conversation
                 self?.conversation = conversation
+                
+                /*
+                 The reason of why did create DispatchQueue.main.async method in here
+                 -> After assigned new convo, I wanna call reload data on the tableview
+                 the Main thread is where all the UI operations should occur
+                 So, create DispatchQueue.main.async method and into it the code 'self?.tableView.reloadData()'
+                 */
+                DispatchQueue.main.async {
+                    /*
+                     The reason of why the 'self' is optional in the 'self?.tableView.reloadData()'
+                     -> Because it's 'weak self'
+                     */
+                    self?.tableView.reloadData()
+                }
                 
             case .failure(let error):
                 print("failed to get convos, the reason is : \(error)")
@@ -191,18 +208,36 @@ class ConversationsViewController: UIViewController {
 
 
 extension ConversationsViewController: UITableViewDelegate, UITableViewDataSource {
+    
     func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-        return 1
+        return conversation.count
     }
     
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
-        let cell = tableView.dequeueReusableCell(withIdentifier: "cell", for: indexPath)
-        cell.textLabel?.text = "Hello World"
-        cell.accessoryType = .disclosureIndicator
+        
+        // model is at the end positioned item in array
+        let model = conversation[indexPath.row]
+        
+        
+        guard let cell = tableView.dequeueReusableCell(withIdentifier: ConversationTableViewCell.identifire,
+                                                       for: indexPath) as? ConversationTableViewCell else
+        {
+            return UITableViewCell()
+        }
+        
+        let id = model.id
+        let name = model.name
+        let otherUserEmail = model.otherUserEmail
+        let latestMessage = model.latestMessage
+        
+        
+        cell.configure(with: model)
         return cell
     }
     
     func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
+        let model = conversation[indexPath.row]
+        
         // looking up UI 'chat bubble'
         // so, when user tapped someone of these cell, push that chat screen on the stack
         // implement 'didSelectRowAt' function
@@ -218,12 +253,20 @@ extension ConversationsViewController: UITableViewDelegate, UITableViewDataSourc
                 return
             }
             
-            let vc = ChatViewController(with: email)
-            vc.title = "Eun Chae Lee"
+            let vc = ChatViewController(with: model.otherUserEmail)
+            vc.title = model.name
             vc.navigationItem.largeTitleDisplayMode = .never
             // push this vc on to the stack animation
             self?.navigationController?.pushViewController(vc, animated: true)
         }
     }
     
+    func tableView(_ tableView: UITableView, heightForRowAt indexPath: IndexPath) -> CGFloat {
+        /*
+         Why did substitute value 120 to height ?
+         -> The reason of substitute 120 point to height is recall maybe image height will points 100.
+         So, give 10-point buffer on both the bottom and top of it.
+         */
+        return 120
+    }
 }

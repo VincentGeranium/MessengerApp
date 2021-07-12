@@ -7,6 +7,13 @@
 
 import UIKit
 
+/*
+ Discription :
+ -> SDWebImage is allows the download and cache basically what I need
+ SDWebImage is doing basically takes care of caching for me.
+ */
+import SDWebImage
+
 class ConversationTableViewCell: UITableViewCell {
     
     /*
@@ -72,7 +79,38 @@ class ConversationTableViewCell: UITableViewCell {
                                         height: (contentView.height-20) / 2)
     }
     
-    public func configure(with model: String) {
+    public func configure(with model: Conversation) {
+        self.userMessageLabel.text = model.latestMessage.text
+        self.userNameLabel.text = model.name
+        
+        /*
+         When download image in Profile tap, actually downloads image every single time.
+         But that way to downloads images which is not ideal way.
+         So, I did create the code which is download used by 'SDWebImage' framework.
+         To add SDWebImage is doing it basically takes care of caching for me.
+         */
+        
+        let path = "\(model.otherUserEmail)_profile_picture.png"
+        StorageManager.shared.downloadURL(for: path) { [weak self] result in
+            switch result {
+            // in the success case, it's give to download URL for the asset
+            case .success(let url):
+                // Actually this is take care of downloading image and ready assigning it to image view
+                // And keep in mind this is UI operation, so do it on the main thread
+                DispatchQueue.main.async {
+                    self?.userAvatarImageView.sd_setImage(with: url, completed: { image, error, sdImageCacheType, url in
+                        print("🙌result of the image param that sd_setImage method in completed : \(image)")
+                        print("🙌result of the error param that sd_setImage method in completed : \(error)")
+                        print("🙌result of the sdImageCacheType param that sd_setImage method in completed : \(sdImageCacheType)")
+                        print("🙌result of the url param that sd_setImage method in completed : \(url)")
+                    })
+                }
+            
+            // in the failure case, it's give error
+            case .failure(let error):
+                print("The reason of failed to get image url : \(error)")
+            }
+        }
         
     }
 

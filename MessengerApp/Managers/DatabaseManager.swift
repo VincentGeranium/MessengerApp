@@ -504,18 +504,44 @@ extension DatabaseManager {
                 completion(.failure(DatabaseErrors.failedToFetch))
                 return
             }
+            // if pass guard let statements, create conversation as an array
             
             // create conversation as an array
             /*
              c.f: about compactMap
              
              Why did I use compactMap?
-             Because the compactMap will the value convert to the dictionaries and than in it into models
+             Because use compactMap method that 'the value' convert to the 'dictionaries' after than in it into 'Conversation' models
              */
             
+            let conversations: [Conversation] = value.compactMap { dictionary in
+                // before compactMap this 'dictionary', I want to validate that all the keys and present
+                // So,create this guard let statement
+                guard let conversationId = dictionary["id"] as? String,
+                      let reciverName = dictionary["receiver_name"] as? String,
+                      let otherUserEmail = dictionary["other_user_email"] as? String,
+                      let latestMessage = dictionary["latest_message"] as? [String: Any],
+                      let sentDate = latestMessage["date"] as? String,
+                      let message = latestMessage["message"] as? String,
+                      let isRead = latestMessage["is_read"] as? Bool
+                else {
+                    print("‼️Failed to down casting")
+                    return nil
+                }
+                
+                // create return the model and latest message object
+                let latestMessageObject = LatestMessage(date: sentDate,
+                                                        text: message,
+                                                        isRead: isRead)
+                
+                return Conversation(id: conversationId,
+                                    name: reciverName,
+                                    otherUserEmail: otherUserEmail,
+                                    latestMessage: latestMessageObject)
+                
+            }
+            completion(.success(conversations))
         }
-        
-        
     }
     
     /// Get all message for a give convo
