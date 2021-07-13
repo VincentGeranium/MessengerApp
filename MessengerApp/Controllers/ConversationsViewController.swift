@@ -195,7 +195,13 @@ class ConversationsViewController: UIViewController {
          So, adis is good practices save money on db cost and be an empty converstaion isn't per se useful.
          
          */
-        let vc = ChatViewController(with: email)
+        
+        /*
+         Description:
+         Why did I pass a value which is 'nil' at the 'ChaViewController' initializer param that 'id'?
+         -> Because this function is for create new convo so,there was no ID yet.
+         */
+        let vc = ChatViewController(with: email, id: nil)
         // passing in the new user name
         vc.isNewConversation = true
         vc.title = name
@@ -225,12 +231,6 @@ extension ConversationsViewController: UITableViewDelegate, UITableViewDataSourc
             return UITableViewCell()
         }
         
-        let id = model.id
-        let name = model.name
-        let otherUserEmail = model.otherUserEmail
-        let latestMessage = model.latestMessage
-        
-        
         cell.configure(with: model)
         return cell
     }
@@ -243,22 +243,21 @@ extension ConversationsViewController: UITableViewDelegate, UITableViewDataSourc
         // implement 'didSelectRowAt' function
         tableView.deselectRow(at: indexPath, animated: true)
         
-        let newConversatiaonVC = NewConversationViewController()
-        newConversatiaonVC.completion = { [weak self] result in
-            guard let strongSelf = self else {
-                return
-            }
-            
-            guard let email = result["email"] else {
-                return
-            }
-            
-            let vc = ChatViewController(with: model.otherUserEmail)
-            vc.title = model.name
-            vc.navigationItem.largeTitleDisplayMode = .never
-            // push this vc on to the stack animation
-            self?.navigationController?.pushViewController(vc, animated: true)
-        }
+//        let newConversatiaonVC = NewConversationViewController()
+//        newConversatiaonVC.completion = { [weak self] result in
+//            guard let strongSelf = self else {
+//                return
+//            }
+//            
+//            guard let email = result["email"] else {
+//                return
+//            }
+//        }
+        let vc = ChatViewController(with: model.otherUserEmail, id: model.id)
+        vc.title = model.name
+        vc.navigationItem.largeTitleDisplayMode = .never
+        // push this vc on to the stack animation
+        self.navigationController?.pushViewController(vc, animated: true)
     }
     
     func tableView(_ tableView: UITableView, heightForRowAt indexPath: IndexPath) -> CGFloat {

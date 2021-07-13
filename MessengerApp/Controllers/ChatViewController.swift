@@ -11,7 +11,7 @@ import InputBarAccessoryView
 
 class ChatViewController: MessagesViewController {
     
-   public static let dateFormatter: DateFormatter = {
+    public static let dateFormatter: DateFormatter = {
         let formatter = DateFormatter()
         formatter.dateStyle = .medium
         formatter.timeStyle = .long
@@ -21,7 +21,9 @@ class ChatViewController: MessagesViewController {
     }()
     
     // This property signify that who conversation with?
-    public var otherUserEmail: String
+    public let otherUserEmail: String
+    
+    private let conversationID: String?
     
     // This property signify that if this conversation is a new conversation?
     public var isNewConversation = false
@@ -34,16 +36,32 @@ class ChatViewController: MessagesViewController {
             return nil
         }
         
+        let safeEmail = DatabaseManager.safeEmail(emailAddress: email)
+        
         return Sender_Type(senderId: email,
-                           displayName: "EunChae Lee",
+                           displayName: "Me",
                            photoURL: "")
-        }
+    }
     
     // make constructor for otherUserEmail Property
     // this is custom costructor, so doesn't have override from superClass
-    init(with email: String) {
+    /*
+     Description :
+     Why did i create 'id' parameter type by 'Optional' which is in initializer constructor?
+     -> The reason is when creating new conversation there is no identifier yet.
+     -> But when user click on or tap on a conversation that's in list, It has an ID and that identifier is basically how going to observe in the database as to what things are changing
+     -> So, assign that 'conversationID' property to 'id' parameter of initializer constructor.
+     */
+    init(with email: String, id: String?) {
+        self.conversationID = id
         self.otherUserEmail = email
         super.init(nibName: nil, bundle: nil)
+        
+        
+        //c.f: -> if dosen't have a conversataionID there's no reason to listen for database update.
+        if let conversationId = conversationID {
+            listenForMessage(id: conversationId)
+        }
         
     }
     
@@ -54,12 +72,44 @@ class ChatViewController: MessagesViewController {
     override func viewDidLoad() {
         super.viewDidLoad()
         view.backgroundColor = .systemPink
-
         
         messagesCollectionView.messagesDataSource = self
         messagesCollectionView.messagesLayoutDelegate = self
         messagesCollectionView.messagesDisplayDelegate = self
         messageInputBar.delegate = self
+    }
+    
+    private func listenForMessage(id: String) {
+        DatabaseManager.shared.getAllMessagesForConvo(with: id) { [weak self] result in
+            switch result {
+            case .success(let messages):
+            // message collection is not empty when doing this
+                guard !messages.isEmpty else {
+                    // if dosen't have any messages no need to continue
+                    return
+                }
+                
+                // the message array has been updated to the new instance that it return
+                self?.messages = messages
+                /*
+                 Description: About 'reloadDataAndKeepOffset'
+                 -> If the user has scroll to the top and they'er reading older messages
+                 And a new messages comes in.
+                 If new messages comes in users don't want it to scroll down that for reading new message.
+                 That is pretty bad exprience to user.
+                 
+                 c.f : About Main theread
+                 UI operation, want to all of those to occur on the main queue
+                 So, did I wrap it in a 'DispatchQueue.main.async'
+                */
+                DispatchQueue.main.async {
+                    self?.messagesCollectionView.reloadDataAndKeepOffset()
+                }
+                
+            case .failure(let error):
+                print("failed to get messages, the reason is : \(error)")
+            }
+        }
     }
     
     override func viewDidAppear(_ animated: Bool) {
@@ -136,16 +186,22 @@ extension ChatViewController: InputBarAccessoryViewDelegate {
     }
 }
 
+
+/*
+ Description:
+ -> The way that this determines how to layout to the messages in terms of right or left is the current user here
+ */
 extension ChatViewController: MessagesDataSource, MessagesLayoutDelegate, MessagesDisplayDelegate {
     // this function is return current user
     func currentSender() -> SenderType {
+        // the curren sender, i did create by 'selfSender'
         if let sender = selfSender {
             return sender
         }
         fatalError("Self sender is nil, email should be cached")
             
         // return dummy sender
-        return Sender_Type(senderId: "", displayName: "123", photoURL: "")
+//        return Sender_Type(senderId: "", displayName: "123", photoURL: "")
     }
     
     func messageForItem(at indexPath: IndexPath, in messagesCollectionView: MessagesCollectionView) -> MessageType {

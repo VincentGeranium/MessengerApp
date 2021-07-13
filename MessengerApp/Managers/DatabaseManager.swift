@@ -545,7 +545,51 @@ extension DatabaseManager {
     }
     
     /// Get all message for a give convo
-    public func getAllMessagesForConvo(with id: String, completion: @escaping (Result<String, Error>) -> Void) {
+    public func getAllMessagesForConvo(with id: String, completion: @escaping (Result<[Message_Type], Error>) -> Void) {
+        database.child("\(id)/message").observe(.value) { snapShot in
+            guard let value = snapShot.value as? [[String: Any]] else {
+                completion(.failure(DatabaseErrors.failedToFetch))
+                return
+            }
+            /*
+             content:
+              date:
+              id:
+              is_read:
+              receiver_name:
+              sender_email:
+              type:
+             */
+            let messages: [Message_Type] = value.compactMap { dictionary in
+                
+                guard let content = dictionary["content"] as? String,
+                      let dateString = dictionary["date"] as? String,
+                      let messageID = dictionary["id"] as? String,
+                      let is_read = dictionary["is_read"] as? Bool,
+                      let receiver_name = dictionary["receiver_name"] as? String,
+                      let sender_email = dictionary["sender_email"] as? String,
+                      let type = dictionary["type"] as? String,
+                      let date = ChatViewController.dateFormatter.date(from: dateString) else {
+                    // if dosen't have all these that from 'content' value to 'type' value, return nil
+                    return nil
+                }
+                
+                let sender = Sender_Type(senderId: sender_email,
+                                         displayName: receiver_name,
+                                         photoURL: "")
+                
+                /*
+                 Description:
+                 -> If dose have all the things that from 'content' value to 'type' value.
+                 Want to basically instantiate a message object which is a strut that the 'Message_Type'
+                 */
+                return Message_Type(sender: sender,
+                                    messageId: messageID,
+                                    sentDate: date,
+                                    kind: .text(content))
+            }
+            completion(.success(messages))
+        }
         
     }
     

@@ -90,7 +90,7 @@ class ConversationTableViewCell: UITableViewCell {
          To add SDWebImage is doing it basically takes care of caching for me.
          */
         
-        let path = "\(model.otherUserEmail)_profile_picture.png"
+        let path = "images/\(model.otherUserEmail)_profile_picture.png"
         StorageManager.shared.downloadURL(for: path) { [weak self] result in
             switch result {
             // in the success case, it's give to download URL for the asset
@@ -99,10 +99,10 @@ class ConversationTableViewCell: UITableViewCell {
                 // And keep in mind this is UI operation, so do it on the main thread
                 DispatchQueue.main.async {
                     self?.userAvatarImageView.sd_setImage(with: url, completed: { image, error, sdImageCacheType, url in
-                        print("🙌result of the image param that sd_setImage method in completed : \(image)")
-                        print("🙌result of the error param that sd_setImage method in completed : \(error)")
-                        print("🙌result of the sdImageCacheType param that sd_setImage method in completed : \(sdImageCacheType)")
-                        print("🙌result of the url param that sd_setImage method in completed : \(url)")
+                        print("🙌result of the 'image' param that sd_setImage method in completed : \(image)")
+                        print("🙌result of the 'error' param that sd_setImage method in completed : \(error)")
+                        print("🙌result of the 'sdImageCacheType' param that sd_setImage method in completed : \(sdImageCacheType)")
+                        print("🙌result of the 'url' param that sd_setImage method in completed : \(url)")
                     })
                 }
             
