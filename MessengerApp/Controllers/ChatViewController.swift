@@ -36,7 +36,7 @@ class ChatViewController: MessagesViewController {
             return nil
         }
         
-        let safeEmail = DatabaseManager.safeEmail(emailAddress: email)
+//        let safeEmail = DatabaseManager.safeEmail(emailAddress: email)
         
         return Sender_Type(senderId: email,
                            displayName: "Me",
@@ -57,10 +57,20 @@ class ChatViewController: MessagesViewController {
         self.otherUserEmail = email
         super.init(nibName: nil, bundle: nil)
         
-        
         //c.f: -> if dosen't have a conversataionID there's no reason to listen for database update.
         if let conversationId = conversationID {
-            listenForMessage(id: conversationId)
+            /*
+             Description:
+             
+             -> 'shouldScrolleToBottom' Parameter is for UI which is the bug that message is hidden due to navigationBar.
+             So, at first load time, 'shouldScrolleToBottom' value have to 'true' because user is just tap the conversation
+             And want to see first message which hidden by navigationBar.
+             Also that is mean's to user first tap the conversation.
+             
+             -> The 'shouldScrolleToBottom' is initialized value by 'true'
+             So, It should scroll itself to the bottom.
+             */
+            listenForMessage(id: conversationId, shouldScrolleToBottom: true)
         }
         
     }
@@ -79,7 +89,7 @@ class ChatViewController: MessagesViewController {
         messageInputBar.delegate = self
     }
     
-    private func listenForMessage(id: String) {
+    private func listenForMessage(id: String, shouldScrolleToBottom: Bool) {
         DatabaseManager.shared.getAllMessagesForConvo(with: id) { [weak self] result in
             switch result {
             case .success(let messages):
@@ -103,7 +113,17 @@ class ChatViewController: MessagesViewController {
                  So, did I wrap it in a 'DispatchQueue.main.async'
                 */
                 DispatchQueue.main.async {
+                    /*
+                     Description:
+                     -> Must not scroll to bottom when user reading older messages
+                     */
+                    
                     self?.messagesCollectionView.reloadDataAndKeepOffset()
+                    
+                    if shouldScrolleToBottom {
+                        // .scrollToLastItem() will scroll it to bottom
+                        self?.messagesCollectionView.scrollToLastItem()
+                    }
                 }
                 
             case .failure(let error):

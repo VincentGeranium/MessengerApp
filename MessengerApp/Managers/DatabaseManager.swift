@@ -273,7 +273,7 @@ extension DatabaseManager {
         // What is purpose of observe 'safeEmail' that root value or current user?
         // because what I care about this convo for this user
         let ref = database.child("\(safeEamil)")
-        ref.observeSingleEvent(of: .value) { snapShot in
+        ref.observeSingleEvent(of: .value) { [weak self] snapShot in
             /*
              c.f:
              Why did define by variable?
@@ -321,29 +321,59 @@ extension DatabaseManager {
             }
             
             let conversationID = "conversation_\(firstMessage.messageId)"
-                
-                
-                /* ‼️ c.f :
-                If make instance type have 'Any', must insert type explicit and certainly.
-                Because complier dosen't know about 'Any', the 'Any' can be all type like bool, Date(), String, ect....
-                So, complier wanna insert explicit type.
-                
-                ‼️ c.f :
-                Why did I definition outside of if-else state?
-                Because enve if I have conversation array before
-                I'm still gonna want to creat this and append it to that array
-                */
-                let newConversationData: [String: Any] = [
-                    "id": conversationID,
-                    "other_user_email": otherUserEmail,
-                    "receiver_name": name,
-                    "latest_message": [
-                        "date": dateString,
-                        "message": message,
-                        "is_read": false
-                    ]
-                ]
             
+            
+            /* ‼️ c.f :
+             If make instance type have 'Any', must insert type explicit and certainly.
+             Because complier dosen't know about 'Any', the 'Any' can be all type like bool, Date(), String, ect....
+             So, complier wanna insert explicit type.
+             
+             ‼️ c.f :
+             Why did I definition outside of if-else state?
+             Because enve if I have conversation array before
+             I'm still gonna want to creat this and append it to that array
+             */
+            let newConversationData: [String: Any] = [
+                "id": conversationID,
+                "other_user_email": otherUserEmail,
+                "receiver_name": name,
+                "latest_message": [
+                    "date": dateString,
+                    "message": message,
+                    "is_read": false
+                ]
+            ]
+            
+            let recipient_newConversationData: [String: Any] = [
+                "id": conversationID,
+                "other_user_email": safeEamil,
+                "receiver_name": "self",
+                "latest_message": [
+                    "date": dateString,
+                    "message": message,
+                    "is_read": false
+                ]
+            ]
+            
+            // MARK:- Update recipient current conversation entry
+            // get thire current conversation for recipient
+            self?.database.child("\(otherUserEmail)/conversations").observeSingleEvent(of: .value) { [weak self] snapShot in
+                if var conversations = snapShot.value as? [[String: Any]] {
+                    // append
+                    // include new convo in the 'conversations'
+                    conversations.append(recipient_newConversationData)
+                    // insert new convo at the database
+                    self?.database.child("\(otherUserEmail)/conversations").setValue(conversations)
+                } else {
+                    // Recipient user dose not have conversation, therefore go ahead and just create it
+                    
+                    // create
+                    self?.database.child("\(otherUserEmail)/conversations").setValue([recipient_newConversationData])
+                }
+            }
+            
+            
+            // MARK:- Update current user conversation entry
             // Once I found the user that 'userNode' will be excute which conversations code.
             // conversation should be something in user node with a key of conversations this should be return to array of dictories because if I recall per the schema that root of 'conversation', whole conversation points array and dictionary has keys and values
             /*
@@ -411,14 +441,14 @@ extension DatabaseManager {
      And it's private because this is private to this class
      */
     private func finishCreateConversation(name: String, conversationID: String, firstMessage: Message_Type, completion: @escaping (Bool) -> Void) {
-//        {
-//            "id": String,
-//            "type": text, photo, video,
-//            "content": String,
-//            "date": Date(),
-//            "sender_email": String,
-//            "is_read": true/false,
-//        }
+        //        {
+        //            "id": String,
+        //            "type": text, photo, video,
+        //            "content": String,
+        //            "date": Date(),
+        //            "sender_email": String,
+        //            "is_read": true/false,
+        //        }
         
         let messageDate = firstMessage.sentDate
         let dateString = ChatViewController.dateFormatter.string(from: messageDate)
@@ -553,12 +583,12 @@ extension DatabaseManager {
             }
             /*
              content:
-              date:
-              id:
-              is_read:
-              receiver_name:
-              sender_email:
-              type:
+             date:
+             id:
+             is_read:
+             receiver_name:
+             sender_email:
+             type:
              */
             let messages: [Message_Type] = value.compactMap { dictionary in
                 
