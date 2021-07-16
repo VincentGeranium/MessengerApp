@@ -214,6 +214,10 @@ class LoginViewController: UIViewController {
         
     }
     
+    /*
+     Description:
+     -> 'loginButtonTapped' function is doing to vaildatio 'email' and 'password'
+     */
     /// when user tapped login button
     @objc private func loginButtonTapped() {
         // dismiss keybord when user hit the button
@@ -259,6 +263,39 @@ class LoginViewController: UIViewController {
             }
             
             let user = result.user
+            
+            // Create Safe Eamil which mean's the email is convert to fitted email that match by the rule of firebase email rule.
+            let safaEmail = DatabaseManager.safeEmail(emailAddress: email)
+            
+            /*
+             Description:
+             -> the 'path' which is param of getDataFor, I pass safeEmail.
+             So, the 'safeEmail' is the child at which this users data exist
+             */
+            DatabaseManager.shared.getDataFor(path: safaEmail) { [weak self] result in
+                switch result {
+                case .success(let data):
+                    // The data I expect this to be a dictionary.
+                    // The Dictionary is with String and value can be Any
+                    guard let userData = data as? [String: Any],
+                          let firstName = userData["first_name"] as? String,
+                          let lastName = userData["last_name"] as? String
+                    else {
+                        return
+                    }
+                    
+                    /*
+                     Description:
+                     -> First of all, grap user's 'first_name' and 'last_name' from the query in 'Realtime Database' that I create which is about 'user's info.
+                     -> So, create 'safe email' property first and grap the name data used by 'safe eamil'
+                     ->
+                     */
+                    UserDefaults.standard.setValue("\(firstName) \(lastName)", forKey: "name")
+                    
+                case .failure(let error):
+                    print("Failed to read data with this error: \(error)")
+                }
+            }
             
             // before dismiss navigationController, save the user email.
                 // cache user's first name, last name and email to userDefault
@@ -398,6 +435,9 @@ extension LoginViewController: LoginButtonDelegate {
             // cache user's first name, last name and email to userDefault
             // if i wanna to show these data which somewhere in the device, i can cache data use by userDefault
             UserDefaults.standard.setValue(email, forKey: "email")
+            
+            // Create UserDefault to cache the user's full-name
+            UserDefaults.standard.setValue("\(firstName) \(lastName)", forKey: "name")
             
             DatabaseManager.shared.userExist(with: email, completion: { exists in
 //                guard let firstName = firstName, let lastName = lastName else {

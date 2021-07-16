@@ -152,21 +152,41 @@ extension ChatViewController: InputBarAccessoryViewDelegate {
         
         print("Sending text: \(text)")
         
+        /*
+         Description:
+         -> Create message in here that outside of the 'if-else' because want to user both cases
+         */
+        let message = Message_Type(sender: selfSender,
+                                   messageId: messageId,
+                                   sentDate: Date(),
+                                   kind: .text(text))
+        
         // send message
         if isNewConversation {
             // Create convo in database
-            let message = Message_Type(sender: selfSender,
-                                       messageId: messageId,
-                                       sentDate: Date(),
-                                       kind: .text(text))
-            
+
             // pass the message to this DatabaseManager call
             /*
              Description:
              When create new convo, title of the screen will be the other users name
              */
-            DatabaseManager.shared.createNewConversation(with: otherUserEmail, name: self.title ?? "User", firstMessage: message) { result in
+            DatabaseManager.shared.createNewConversation(with: otherUserEmail, name: self.title ?? "User", firstMessage: message) { [weak self] result in
                 if result == true {
+                    print("message sent")
+                    // it's not longer new conversation so, false
+                    self?.isNewConversation = false
+                }
+                else {
+                    print("failed to send")
+                }
+            }
+        }
+        else {
+            // Append to existing convo data
+            // Sending a text base message.
+            // c.f : Should refresh user interface if the message successfully sent
+            DatabaseManager.shared.sendMessage(to: otherUserEmail, message: message) { success in
+                if success {
                     print("message sent")
                 }
                 else {
@@ -174,10 +194,10 @@ extension ChatViewController: InputBarAccessoryViewDelegate {
                 }
             }
             
-        } else {
-            // Append to existing convo data
         }
     }
+    
+    
     
     private func createMessageId() -> String? {
         

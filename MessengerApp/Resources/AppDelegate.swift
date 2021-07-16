@@ -106,8 +106,11 @@ class AppDelegate: UIResponder, UIApplicationDelegate, GIDSignInDelegate {
             return
         }
         
-        // grap 'email' data from google sign in 'monstrosity google sign function'
+        // grap 'email' data from google sign in 'monstrosity google sign mehod'
         UserDefaults.standard.setValue(email, forKey: "email")
+        
+        // grap 'user's profile given name and family name' data from google sign method
+        UserDefaults.standard.setValue("\(firstName) \(lastName)", forKey: "name")
         
         // MARK:- reason of cache user's email use by UserDefault
         // ‼️ why do I save user email?? (from fb, google, firebase) ‼️

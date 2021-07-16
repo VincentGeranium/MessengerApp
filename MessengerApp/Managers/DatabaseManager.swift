@@ -29,6 +29,34 @@ final class DatabaseManager {
     private init() { }
 }
 
+/*
+ Description:
+ -> Create function here that will allow me to get any data out of database in a 'generic way'
+ */
+extension DatabaseManager {
+    /*
+     Description:
+     -> The 'completion' of getFor function's param is escaping handler.
+     -> It the completion takes 'Result', this is return 'Any' when success case. Because I don't want constrain it to type and otherwise return 'Error'
+     -> This whole things which is 'Result' return 'Void'
+     
+     Description:
+     -> This function is a generic function where I can pass in any child path
+     -> It will return if successfully able to fetch in our compltion in the results success case it overturned that data.
+     -> And at the call site I can go ahead and cast it.
+     */
+    public func getDataFor(path: String, completion: @escaping (Result<Any, Error>) -> Void) {
+        self.database.child("\(path)").observeSingleEvent(of: .value) { snapShot in
+            guard let value = snapShot.value else {
+                completion(.failure(DatabaseErrors.failedToFetch))
+                return
+            }
+            // if success passing the 'value'
+            completion(.success(value))
+        }
+        
+    }
+}
 
 // MARK:- Account Management
 
