@@ -141,6 +141,7 @@ class ChatViewController: MessagesViewController {
     }
 }
 
+// MARK:- Extension
 extension ChatViewController: InputBarAccessoryViewDelegate {
     
     func inputBar(_ inputBar: InputBarAccessoryView, didPressSendButtonWith text: String) {
@@ -152,6 +153,7 @@ extension ChatViewController: InputBarAccessoryViewDelegate {
         
         print("Sending text: \(text)")
         
+        // MARK:- Message Object
         /*
          Description:
          -> Create message in here that outside of the 'if-else' because want to user both cases
@@ -163,8 +165,9 @@ extension ChatViewController: InputBarAccessoryViewDelegate {
         
         // send message
         if isNewConversation {
+            // This block is what I to do for new conversation
+            
             // Create convo in database
-
             // pass the message to this DatabaseManager call
             /*
              Description:
@@ -182,10 +185,21 @@ extension ChatViewController: InputBarAccessoryViewDelegate {
             }
         }
         else {
+            
+            // c.f : unwraped optional string value which is'conversationID' for using sendMessage's parameter.
+            // c.f : name is self.title and this is other user name
+            guard let conversationID = conversationID,
+                  let name = self.title else {
+                return
+            }
+            
+            // This block is what I to do to do for existing convo
+            
             // Append to existing convo data
             // Sending a text base message.
             // c.f : Should refresh user interface if the message successfully sent
-            DatabaseManager.shared.sendMessage(to: otherUserEmail, message: message) { success in
+            // c.f : The functiocn sendMessage's parameter that 'to' is 'String' type.
+            DatabaseManager.shared.sendMessage(to: conversationID, receiverName: name, newMessage: message) { success in
                 if success {
                     print("message sent")
                 }

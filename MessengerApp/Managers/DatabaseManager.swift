@@ -287,10 +287,13 @@ extension DatabaseManager {
      ]
      */
     
+    // MARK:- Create New Conversation function
     /// Create a new convo with target user email and first message sent
     public func createNewConversation(with otherUserEmail: String, name: String, firstMessage: Message_Type, completion: @escaping (Bool) -> Void) {
         // current cache has email that not the 'safe email'
-        guard let currentEmail = UserDefaults.standard.value(forKey: "email") as? String else {
+        guard let currentEmail = UserDefaults.standard.value(forKey: "email") as? String,
+              let senderName = UserDefaults.standard.value(forKey: "name") as? String
+              else {
             return
         }
         
@@ -375,7 +378,7 @@ extension DatabaseManager {
             let recipient_newConversationData: [String: Any] = [
                 "id": conversationID,
                 "other_user_email": safeEamil,
-                "receiver_name": "self",
+                "sender_name": senderName,
                 "latest_message": [
                     "date": dateString,
                     "message": message,
@@ -576,7 +579,7 @@ extension DatabaseManager {
                 // before compactMap this 'dictionary', I want to validate that all the keys and present
                 // So,create this guard let statement
                 guard let conversationId = dictionary["id"] as? String,
-                      let reciverName = dictionary["receiver_name"] as? String,
+                      let receiverName = dictionary["receiver_name"] as? String,
                       let otherUserEmail = dictionary["other_user_email"] as? String,
                       let latestMessage = dictionary["latest_message"] as? [String: Any],
                       let sentDate = latestMessage["date"] as? String,
@@ -593,7 +596,7 @@ extension DatabaseManager {
                                                         isRead: isRead)
                 
                 return Conversation(id: conversationId,
-                                    name: reciverName,
+                                    name: receiverName,
                                     otherUserEmail: otherUserEmail,
                                     latestMessage: latestMessageObject)
                 
@@ -652,7 +655,95 @@ extension DatabaseManager {
     }
     
     /// Send a message with target convo and message
-    public func sendMessage(to convo: String, message: Message_Type, completion: @escaping (Bool) -> Void){
+    public func sendMessage(to conversationID: String, receiverName: String, newMessage: Message_Type, completion: @escaping (Bool) -> Void) {
         // can handle all the stuff in here in the database manager rather than doing all of that business logic in the view contorller
+        
+        /*
+         Description:
+         -> Create three things in this function.
+         1, Add new message to messages.
+         2, Update sender latest message.
+         3, Update recipient latest message.
+         
+         -> To be clear the latest message both the 'sender' and 'recipient' are specific to this conversation key
+         */
+        
+        // Grap of 'message' data from 'conversationID' which is in the realtime firebase, root query that create when user start conversation at first time
+        database.child("\(conversationID)/message").observeSingleEvent(of: .value) { [weak self] snapShot in
+            
+            guard let strongSelf = self else {
+                return
+            }
+            
+            /*
+             c.f:
+             -> why 'currentMessaage' type is '[[String: Any]]'
+             Because I downcasting by '[[String: Any]]'
+             The code write like this 'as? [[String: Any]]'
+             Also snapshot is pointing the value of "conversationID/message"
+             */
+            guard var currentMessaage = snapShot.value as? [[String: Any]] else {
+                completion(false)
+                return
+            }
+            
+            let messageDate = newMessage.sentDate
+            let dateString = ChatViewController.dateFormatter.string(from: messageDate)
+            
+            var message = ""
+            
+            switch newMessage.kind {
+            case .text(let messageText):
+                message = messageText
+            case .attributedText(_):
+                break
+            case .photo(_):
+                break
+            case .video(_):
+                break
+            case .location(_):
+                break
+            case .emoji(_):
+                break
+            case .audio(_):
+                break
+            case .contact(_):
+                break
+            case .linkPreview(_):
+                break
+            case .custom(_):
+                break
+            }
+            
+            // ‼️ c.f: senderEmail data is pull out from UserDefault
+            guard let senderEmail = UserDefaults.standard.value(forKey: "email") as? String else {
+                completion(false)
+                return
+            }
+            
+            let senderSafeEmail = DatabaseManager.safeEmail(emailAddress: senderEmail)
+            
+            // ‼️ c.f: Create message instance to match the schema that I have defined.
+            let newMessageEntry: [String: Any] = [
+                "id": newMessage.messageId,
+                "type": newMessage.kind.messageKidString,
+                "content": message,
+                "date": dateString,
+                "sender_email": senderSafeEmail,
+                "is_read": false,
+                "receiver_name": receiverName
+            ]
+
+            currentMessaage.append(newMessageEntry)
+            
+            strongSelf.database.child("\(conversationID)/message").setValue(currentMessaage) { error, dbRef in
+                guard error == nil else {
+                    print("Failed to set value : \(error)")
+                    completion(false)
+                    return
+                }
+                completion(true)
+            }
+        }
     }
 }
