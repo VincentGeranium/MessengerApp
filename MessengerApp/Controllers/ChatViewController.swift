@@ -36,9 +36,10 @@ class ChatViewController: MessagesViewController {
             return nil
         }
         
-//        let safeEmail = DatabaseManager.safeEmail(emailAddress: email)
+        // c.f: the datebase is bring only safe email.
+        let safeEmail = DatabaseManager.safeEmail(emailAddress: email)
         
-        return Sender_Type(senderId: email,
+        return Sender_Type(senderId: safeEmail,
                            displayName: "Me",
                            photoURL: "")
     }
@@ -89,7 +90,14 @@ class ChatViewController: MessagesViewController {
         messageInputBar.delegate = self
     }
     
+    
+    
     private func listenForMessage(id: String, shouldScrolleToBottom: Bool) {
+        /*
+         Description:
+         -> Every time that completion is called I want to update to this collection view of message.
+         So, that the messages array has been updated to the new instance that it return
+         */
         DatabaseManager.shared.getAllMessagesForConvo(with: id) { [weak self] result in
             switch result {
             case .success(let messages):
@@ -173,7 +181,7 @@ extension ChatViewController: InputBarAccessoryViewDelegate {
              Description:
              When create new convo, title of the screen will be the other users name
              */
-            DatabaseManager.shared.createNewConversation(with: otherUserEmail, name: self.title ?? "User", firstMessage: message) { [weak self] result in
+            DatabaseManager.shared.createNewConversation(with: otherUserEmail, receiverName: self.title ?? "User", firstMessage: message) { [weak self] result in
                 if result == true {
                     print("message sent")
                     // it's not longer new conversation so, false
@@ -207,7 +215,6 @@ extension ChatViewController: InputBarAccessoryViewDelegate {
                     print("failed to send")
                 }
             }
-            
         }
     }
     
@@ -243,7 +250,7 @@ extension ChatViewController: InputBarAccessoryViewDelegate {
 
 /*
  Description:
- -> The way that this determines how to layout to the messages in terms of right or left is the current user here
+ -> The way that this determines(결정) that down below code the extension are how to layout to the messages in terms of right or left
  */
 extension ChatViewController: MessagesDataSource, MessagesLayoutDelegate, MessagesDisplayDelegate {
     // this function is return current user

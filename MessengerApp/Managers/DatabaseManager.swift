@@ -289,13 +289,15 @@ extension DatabaseManager {
     
     // MARK:- Create New Conversation function
     /// Create a new convo with target user email and first message sent
-    public func createNewConversation(with otherUserEmail: String, name: String, firstMessage: Message_Type, completion: @escaping (Bool) -> Void) {
+    public func createNewConversation(with otherUserEmail: String, receiverName: String, firstMessage: Message_Type, completion: @escaping (Bool) -> Void) {
         // current cache has email that not the 'safe email'
         guard let currentEmail = UserDefaults.standard.value(forKey: "email") as? String,
               let senderName = UserDefaults.standard.value(forKey: "name") as? String
-              else {
+        else {
             return
         }
+        
+        print("‼️ createNewConversation func ‼️ senderName is : \(senderName)")
         
         // What is purpose of the 'safe email'?
         // The safe email is what the database needs because I can't have certain characters as keys
@@ -367,7 +369,7 @@ extension DatabaseManager {
             let newConversationData: [String: Any] = [
                 "id": conversationID,
                 "other_user_email": otherUserEmail,
-                "receiver_name": name,
+                "receiver_name": receiverName,
                 "latest_message": [
                     "date": dateString,
                     "message": message,
@@ -427,7 +429,7 @@ extension DatabaseManager {
                         return
                     }
                     // c.f: completion parameter of this function dose take root function(ref.setValue) parameter the completion
-                    self?.finishCreateConversation(name: name,
+                    self?.finishCreateConversation(name: receiverName,
                                                    conversationID: conversationID,
                                                    firstMessage: firstMessage,
                                                    completion: completion)
@@ -455,7 +457,7 @@ extension DatabaseManager {
                     }
                     
                     // c.f: completion parameter of this function dose take root function(ref.setValue) parameter the completion
-                    self?.finishCreateConversation(name: name,
+                    self?.finishCreateConversation(name: receiverName,
                                                    conversationID: conversationID,
                                                    firstMessage: firstMessage,
                                                    completion: completion)
@@ -565,43 +567,85 @@ extension DatabaseManager {
                 completion(.failure(DatabaseErrors.failedToFetch))
                 return
             }
-            // if pass guard let statements, create conversation as an array
             
-            // create conversation as an array
-            /*
-             c.f: about compactMap
-             
-             Why did I use compactMap?
-             Because use compactMap method that 'the value' convert to the 'dictionaries' after than in it into 'Conversation' models
-             */
-            
-            let conversations: [Conversation] = value.compactMap { dictionary in
-                // before compactMap this 'dictionary', I want to validate that all the keys and present
-                // So,create this guard let statement
-                guard let conversationId = dictionary["id"] as? String,
-                      let receiverName = dictionary["receiver_name"] as? String,
-                      let otherUserEmail = dictionary["other_user_email"] as? String,
-                      let latestMessage = dictionary["latest_message"] as? [String: Any],
-                      let sentDate = latestMessage["date"] as? String,
-                      let message = latestMessage["message"] as? String,
-                      let isRead = latestMessage["is_read"] as? Bool
-                else {
-                    print("‼️Failed to down casting")
-                    return nil
+            let otherUserEmail = value.map { dic -> String in
+                guard let otherUserEmail = dic["other_user_email"] as? String else {
+                    return "nil"
                 }
-                
-                // create return the model and latest message object
-                let latestMessageObject = LatestMessage(date: sentDate,
-                                                        text: message,
-                                                        isRead: isRead)
-                
-                return Conversation(id: conversationId,
-                                    name: receiverName,
-                                    otherUserEmail: otherUserEmail,
-                                    latestMessage: latestMessageObject)
+                return otherUserEmail
+            }
+            print("‼️mapping result of otherUserEmail in getAllConversation ‼️: \(otherUserEmail)")
+            
+            // If log in user is sender
+            if otherUserEmail.contains(email) {
+                let conversations: [Conversation] = value.compactMap { dictionary in
+                    // if pass guard let statements, create conversation as an array
+                    
+                    // create conversation as an array
+                    /*
+                     c.f: about compactMap
+                     
+                     Why did I use compactMap?
+                     Because use compactMap method that 'the value' convert to the 'dictionaries' after than in it into 'Conversation' models
+                     */
+                    
+                    // before compactMap this 'dictionary', I want to validate that all the keys and present
+                    // So,create this guard let statement
+                    guard let conversationId = dictionary["id"] as? String,
+                          let receiverName = dictionary["receiver_name"] as? String,
+                          let otherUserEmail = dictionary["other_user_email"] as? String,
+                          let latestMessage = dictionary["latest_message"] as? [String: Any],
+                          let sentDate = latestMessage["date"] as? String,
+                          let message = latestMessage["message"] as? String,
+                          let isRead = latestMessage["is_read"] as? Bool
+                    else {
+                        print("‼️Failed to down casting")
+                        return nil
+                    }
+                    
+                    // create return the model and latest message object
+                    let latestMessageObject = LatestMessage(date: sentDate,
+                                                            text: message,
+                                                            isRead: isRead)
+                    
+                    return Conversation(id: conversationId,
+                                        name: receiverName,
+                                        otherUserEmail: otherUserEmail,
+                                        latestMessage: latestMessageObject)
+                    
+                }
+                completion(.success(conversations))
+            }
+            else {
+                let conversations: [Conversation] = value.compactMap { dictionary in
+                    // before compactMap this 'dictionary', I want to validate that all the keys and present
+                    // So,create this guard let statement
+                    guard let conversationId = dictionary["id"] as? String,
+                          let senderName = dictionary["sender_name"] as? String,
+                          let otherUserEmail = dictionary["other_user_email"] as? String,
+                          let latestMessage = dictionary["latest_message"] as? [String: Any],
+                          let sentDate = latestMessage["date"] as? String,
+                          let message = latestMessage["message"] as? String,
+                          let isRead = latestMessage["is_read"] as? Bool
+                    else {
+                        print("‼️Failed to down casting")
+                        return nil
+                    }
+                    
+                    // create return the model and latest message object
+                    let latestMessageObject = LatestMessage(date: sentDate,
+                                                            text: message,
+                                                            isRead: isRead)
+                    
+                    return Conversation(id: conversationId,
+                                        name: senderName,
+                                        otherUserEmail: otherUserEmail,
+                                        latestMessage: latestMessageObject)
+                    
+                }
+                completion(.success(conversations))
                 
             }
-            completion(.success(conversations))
         }
     }
     
@@ -621,6 +665,7 @@ extension DatabaseManager {
              sender_email:
              type:
              */
+            // Computed property
             let messages: [Message_Type] = value.compactMap { dictionary in
                 
                 guard let content = dictionary["content"] as? String,
@@ -687,6 +732,8 @@ extension DatabaseManager {
                 return
             }
             
+            print("‼️ sendMessage func ‼️ currentMessaage is : \(currentMessaage)")
+            
             let messageDate = newMessage.sentDate
             let dateString = ChatViewController.dateFormatter.string(from: messageDate)
             
@@ -721,6 +768,8 @@ extension DatabaseManager {
                 return
             }
             
+            print("‼️ sendMessage func ‼️ senderEmail is : \(senderEmail)")
+            
             let senderSafeEmail = DatabaseManager.safeEmail(emailAddress: senderEmail)
             
             // ‼️ c.f: Create message instance to match the schema that I have defined.
@@ -736,12 +785,15 @@ extension DatabaseManager {
 
             currentMessaage.append(newMessageEntry)
             
+            print("‼️ sendMessage func ‼️ newMessageEntry is : \(newMessageEntry)")
+            
             strongSelf.database.child("\(conversationID)/message").setValue(currentMessaage) { error, dbRef in
                 guard error == nil else {
                     print("Failed to set value : \(error)")
                     completion(false)
                     return
                 }
+                print("Database reference in the func 'sendMessage': \(dbRef)")
                 completion(true)
             }
         }

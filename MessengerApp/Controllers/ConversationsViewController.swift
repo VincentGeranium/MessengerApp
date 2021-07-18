@@ -77,7 +77,7 @@ class ConversationsViewController: UIViewController {
         
         // transform the 'email' to 'safe email' -> the reason of can't use '., $, ect'
         let safeEmail = DatabaseManager.safeEmail(emailAddress: email)
-        
+        print("What is the safe email from ‼️startListeningForConversation‼️ : \(safeEmail)")
         /*
          The reason of write '[weak self]'
          -> It's gonna refer to the table view if need to refresh the data, don't wanna memory leak and making cause the memory cycle.
