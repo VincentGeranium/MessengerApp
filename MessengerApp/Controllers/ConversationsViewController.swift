@@ -112,7 +112,7 @@ class ConversationsViewController: UIViewController {
                 }
                 
             case .failure(let error):
-                print("failed to get convos, the reason is : \(error)")
+                print("‼️failed to get convos, the reason is‼️ : \(error)")
             }
             
         }

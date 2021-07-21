@@ -181,7 +181,7 @@ extension ChatViewController: InputBarAccessoryViewDelegate {
              Description:
              When create new convo, title of the screen will be the other users name
              */
-            DatabaseManager.shared.createNewConversation(with: otherUserEmail, receiverName: self.title ?? "User", firstMessage: message) { [weak self] result in
+            DatabaseManager.shared.createNewConversation(with: otherUserEmail, name: self.title ?? "User", firstMessage: message) { [weak self] result in
                 if result == true {
                     print("message sent")
                     // it's not longer new conversation so, false
@@ -207,7 +207,7 @@ extension ChatViewController: InputBarAccessoryViewDelegate {
             // Sending a text base message.
             // c.f : Should refresh user interface if the message successfully sent
             // c.f : The functiocn sendMessage's parameter that 'to' is 'String' type.
-            DatabaseManager.shared.sendMessage(to: conversationID, receiverName: name, newMessage: message) { success in
+            DatabaseManager.shared.sendMessage(to: conversationID, otherUserEmail: otherUserEmail, name: name, newMessage: message) { success in
                 if success {
                     print("message sent")
                 }

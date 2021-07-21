@@ -102,7 +102,8 @@ class AppDelegate: UIResponder, UIApplicationDelegate, GIDSignInDelegate {
         // get user email, name
         guard let email = user.profile.email,
               let firstName = user.profile.givenName,
-              let lastName = user.profile.familyName else {
+              let lastName = user.profile.familyName
+        else {
             return
         }
         
@@ -111,6 +112,8 @@ class AppDelegate: UIResponder, UIApplicationDelegate, GIDSignInDelegate {
         
         // grap 'user's profile given name and family name' data from google sign method
         UserDefaults.standard.setValue("\(firstName) \(lastName)", forKey: "name")
+        
+        
         
         // MARK:- reason of cache user's email use by UserDefault
         // ‼️ why do I save user email?? (from fb, google, firebase) ‼️
@@ -186,6 +189,8 @@ class AppDelegate: UIResponder, UIApplicationDelegate, GIDSignInDelegate {
         }
         let credential = GoogleAuthProvider.credential(withIDToken: authentication.idToken,
                                                        accessToken: authentication.accessToken)
+        
+        
         
         // firebase auth actualy sign in
         FirebaseAuth.Auth.auth().signIn(with: credential) { authResult, error in

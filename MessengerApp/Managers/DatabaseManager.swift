@@ -104,9 +104,6 @@ extension DatabaseManager {
     /// - Parameter userInfo: infomation about user for insert to database.
     public func insertUser(with userInfo: UserInfo, compltion: @escaping (Bool) -> Void) {
         
-        
-        
-        
         // insert database
         // key is user email
         // this is insert query.
@@ -289,15 +286,15 @@ extension DatabaseManager {
     
     // MARK:- Create New Conversation function
     /// Create a new convo with target user email and first message sent
-    public func createNewConversation(with otherUserEmail: String, receiverName: String, firstMessage: Message_Type, completion: @escaping (Bool) -> Void) {
+    public func createNewConversation(with otherUserEmail: String, name: String, firstMessage: Message_Type, completion: @escaping (Bool) -> Void) {
         // current cache has email that not the 'safe email'
         guard let currentEmail = UserDefaults.standard.value(forKey: "email") as? String,
-              let senderName = UserDefaults.standard.value(forKey: "name") as? String
+              let currentName = UserDefaults.standard.value(forKey: "name") as? String
         else {
             return
         }
         
-        print("‼️ createNewConversation func ‼️ senderName is : \(senderName)")
+        print("‼️ createNewConversation func ‼️ senderName is : \(currentName)")
         
         // What is purpose of the 'safe email'?
         // The safe email is what the database needs because I can't have certain characters as keys
@@ -355,6 +352,7 @@ extension DatabaseManager {
             
             let conversationID = "conversation_\(firstMessage.messageId)"
             
+
             
             /* ‼️ c.f :
              If make instance type have 'Any', must insert type explicit and certainly.
@@ -369,7 +367,7 @@ extension DatabaseManager {
             let newConversationData: [String: Any] = [
                 "id": conversationID,
                 "other_user_email": otherUserEmail,
-                "receiver_name": receiverName,
+                "name": name,
                 "latest_message": [
                     "date": dateString,
                     "message": message,
@@ -380,7 +378,7 @@ extension DatabaseManager {
             let recipient_newConversationData: [String: Any] = [
                 "id": conversationID,
                 "other_user_email": safeEamil,
-                "sender_name": senderName,
+                "name": currentName,
                 "latest_message": [
                     "date": dateString,
                     "message": message,
@@ -429,7 +427,7 @@ extension DatabaseManager {
                         return
                     }
                     // c.f: completion parameter of this function dose take root function(ref.setValue) parameter the completion
-                    self?.finishCreateConversation(name: receiverName,
+                    self?.finishCreateConversation(name: currentName,
                                                    conversationID: conversationID,
                                                    firstMessage: firstMessage,
                                                    completion: completion)
@@ -457,7 +455,7 @@ extension DatabaseManager {
                     }
                     
                     // c.f: completion parameter of this function dose take root function(ref.setValue) parameter the completion
-                    self?.finishCreateConversation(name: receiverName,
+                    self?.finishCreateConversation(name: currentName,
                                                    conversationID: conversationID,
                                                    firstMessage: firstMessage,
                                                    completion: completion)
@@ -525,7 +523,7 @@ extension DatabaseManager {
             "date": dateString,
             "sender_email": senderEmail,
             "is_read": false,
-            "receiver_name": name
+            "name": name
         ]
         
         let value: [String: Any] = [
@@ -533,6 +531,8 @@ extension DatabaseManager {
                 collectionMessage
             ]
         ]
+        
+        print("‼️adding convo: \(conversationID)")
         
         database.child("\(conversationID)").setValue(value) { error, databaseRef in
             guard error == nil else {
@@ -561,91 +561,42 @@ extension DatabaseManager {
          will get this completion handler call
          */
         
-        /// Attach the listener to firebase database
+        // Attach the listener to firebase database
         database.child("\(email)/conversations").observe(.value) { snapShot in
             guard let value = snapShot.value as? [[String: Any]] else {
                 completion(.failure(DatabaseErrors.failedToFetch))
                 return
             }
             
-            let otherUserEmail = value.map { dic -> String in
-                guard let otherUserEmail = dic["other_user_email"] as? String else {
-                    return "nil"
+            let conversations: [Conversation] = value.compactMap { dictionary in
+                // before compactMap this 'dictionary', I want to validate that all the keys and present
+                // So,create this guard let statement
+                guard let conversationId = dictionary["id"] as? String,
+                      let senderName = dictionary["name"] as? String,
+                      let otherUserEmail = dictionary["other_user_email"] as? String,
+                      let latestMessage = dictionary["latest_message"] as? [String: Any],
+                      let sentDate = latestMessage["date"] as? String,
+                      let message = latestMessage["message"] as? String,
+                      let isRead = latestMessage["is_read"] as? Bool
+                else {
+                    print("‼️Failed to down casting‼️")
+                    return nil
                 }
-                return otherUserEmail
-            }
-            print("‼️mapping result of otherUserEmail in getAllConversation ‼️: \(otherUserEmail)")
-            
-            // If log in user is sender
-            if otherUserEmail.contains(email) {
-                let conversations: [Conversation] = value.compactMap { dictionary in
-                    // if pass guard let statements, create conversation as an array
-                    
-                    // create conversation as an array
-                    /*
-                     c.f: about compactMap
-                     
-                     Why did I use compactMap?
-                     Because use compactMap method that 'the value' convert to the 'dictionaries' after than in it into 'Conversation' models
-                     */
-                    
-                    // before compactMap this 'dictionary', I want to validate that all the keys and present
-                    // So,create this guard let statement
-                    guard let conversationId = dictionary["id"] as? String,
-                          let receiverName = dictionary["receiver_name"] as? String,
-                          let otherUserEmail = dictionary["other_user_email"] as? String,
-                          let latestMessage = dictionary["latest_message"] as? [String: Any],
-                          let sentDate = latestMessage["date"] as? String,
-                          let message = latestMessage["message"] as? String,
-                          let isRead = latestMessage["is_read"] as? Bool
-                    else {
-                        print("‼️Failed to down casting")
-                        return nil
-                    }
-                    
-                    // create return the model and latest message object
-                    let latestMessageObject = LatestMessage(date: sentDate,
-                                                            text: message,
-                                                            isRead: isRead)
-                    
-                    return Conversation(id: conversationId,
-                                        name: receiverName,
-                                        otherUserEmail: otherUserEmail,
-                                        latestMessage: latestMessageObject)
-                    
-                }
-                completion(.success(conversations))
-            }
-            else {
-                let conversations: [Conversation] = value.compactMap { dictionary in
-                    // before compactMap this 'dictionary', I want to validate that all the keys and present
-                    // So,create this guard let statement
-                    guard let conversationId = dictionary["id"] as? String,
-                          let senderName = dictionary["sender_name"] as? String,
-                          let otherUserEmail = dictionary["other_user_email"] as? String,
-                          let latestMessage = dictionary["latest_message"] as? [String: Any],
-                          let sentDate = latestMessage["date"] as? String,
-                          let message = latestMessage["message"] as? String,
-                          let isRead = latestMessage["is_read"] as? Bool
-                    else {
-                        print("‼️Failed to down casting")
-                        return nil
-                    }
-                    
-                    // create return the model and latest message object
-                    let latestMessageObject = LatestMessage(date: sentDate,
-                                                            text: message,
-                                                            isRead: isRead)
-                    
-                    return Conversation(id: conversationId,
-                                        name: senderName,
-                                        otherUserEmail: otherUserEmail,
-                                        latestMessage: latestMessageObject)
-                    
-                }
-                completion(.success(conversations))
+                
+                // create return the model and latest message object
+                let latestMessageObject = LatestMessage(date: sentDate,
+                                                        text: message,
+                                                        isRead: isRead)
+                
+                return Conversation(id: conversationId,
+                                    name: senderName,
+                                    otherUserEmail: otherUserEmail,
+                                    latestMessage: latestMessageObject)
                 
             }
+            
+            completion(.success(conversations))
+            
         }
     }
     
@@ -700,7 +651,7 @@ extension DatabaseManager {
     }
     
     /// Send a message with target convo and message
-    public func sendMessage(to conversationID: String, receiverName: String, newMessage: Message_Type, completion: @escaping (Bool) -> Void) {
+    public func sendMessage(to conversationID: String, otherUserEmail: String, name: String, newMessage: Message_Type, completion: @escaping (Bool) -> Void) {
         // can handle all the stuff in here in the database manager rather than doing all of that business logic in the view contorller
         
         /*
@@ -712,6 +663,14 @@ extension DatabaseManager {
          
          -> To be clear the latest message both the 'sender' and 'recipient' are specific to this conversation key
          */
+        
+        // get current user email
+        guard let myEmail = UserDefaults.standard.value(forKey: "email") as? String else {
+            completion(false)
+            return
+        }
+        
+        let currentEmail = DatabaseManager.safeEmail(emailAddress: myEmail)
         
         // Grap of 'message' data from 'conversationID' which is in the realtime firebase, root query that create when user start conversation at first time
         database.child("\(conversationID)/message").observeSingleEvent(of: .value) { [weak self] snapShot in
@@ -780,21 +739,128 @@ extension DatabaseManager {
                 "date": dateString,
                 "sender_email": senderSafeEmail,
                 "is_read": false,
-                "receiver_name": receiverName
+                "receiver_name": name
             ]
 
             currentMessaage.append(newMessageEntry)
             
             print("‼️ sendMessage func ‼️ newMessageEntry is : \(newMessageEntry)")
             
+            // insert messages that the collection.
+            // This is insertion.
             strongSelf.database.child("\(conversationID)/message").setValue(currentMessaage) { error, dbRef in
                 guard error == nil else {
                     print("Failed to set value : \(error)")
                     completion(false)
                     return
                 }
+                
+                /*
+                 two updates for the latest messages.
+                 -> 1, get the conversation node for each user
+                 */
+                strongSelf.database.child("\(currentEmail)/conversations").observeSingleEvent(of: .value) { snapShot in
+                    guard var currentUserConversation = snapShot.value as? [[String: Any]] else {
+                        completion(false)
+                        return
+                    }
+                    
+                    /*
+                     two updates for the latest messages.
+                     -> 2. Find in the conversation the entry where the conversationID and validate a way of compare between conversationID and current conversationID.
+                     And Update latest message
+                     */
+                    
+                    let updateLatestMessage: [String: Any] = [
+                        "date": dateString,
+                        "is_read": false,
+                        "message": message
+                    ]
+                    
+                    var targetConversation: [String: Any]?
+                    
+                    var postion = 0
+                    
+                    for conversationDictionary in currentUserConversation {
+                        if let currentId = conversationDictionary["id"] as? String, currentId == conversationID {
+                            // Update laatest message for update UI which is conversation view
+                            targetConversation = conversationDictionary
+                            break
+                        }
+                        postion += 1
+                    }
+                    targetConversation?["latest_message"] = updateLatestMessage
+                    
+                    guard let unwrapTargetConvo = targetConversation else {
+                        completion(false)
+                        return
+                    }
+                    currentUserConversation[postion] = unwrapTargetConvo
+                    
+                    // update
+                    strongSelf.database.child("\(currentEmail)/conversations").setValue(currentUserConversation) { error, dbRef in
+                        guard error == nil else {
+                            completion(false)
+                            return
+                        }
+                        // This 'print state' is Database Reference of update latest messages for sender user(current user)
+                        print("‼️Database Reference of update latest messages for sender user(current user)- \(dbRef)")
+                        
+                        // MARK:- Update latest message for recipient user
+                        
+                        strongSelf.database.child("\(otherUserEmail)/conversations").observeSingleEvent(of: .value) { snapShot in
+                            guard var otherUserConversation = snapShot.value as? [[String: Any]] else {
+                                completion(false)
+                                return
+                            }
+                            
+                            /*
+                             two updates for the latest messages.
+                             -> 2. Find in the conversation the entry where the conversationID and validate a way of compare between conversationID and current conversationID.
+                             And Update latest message
+                             */
+                            
+                            let updateLatestMessage: [String: Any] = [
+                                "date": dateString,
+                                "is_read": false,
+                                "message": message
+                            ]
+                            
+                            var targetConversation: [String: Any]?
+                            
+                            var postion = 0
+                            
+                            for conversationDictionary in otherUserConversation {
+                                if let currentId = conversationDictionary["id"] as? String, currentId == conversationID {
+                                    // Update laatest message for update UI which is conversation view
+                                    targetConversation = conversationDictionary
+                                    break
+                                }
+                                postion += 1
+                            }
+                            targetConversation?["latest_message"] = updateLatestMessage
+                            
+                            guard let unwrapTargetConvo = targetConversation else {
+                                completion(false)
+                                return
+                            }
+                            otherUserConversation[postion] = unwrapTargetConvo
+                            
+                            // update
+                            strongSelf.database.child("\(otherUserEmail)/conversations").setValue(otherUserConversation) { error, dbRef in
+                                guard error == nil else {
+                                    completion(false)
+                                    return
+                                }
+                                // This print state is Database Reference of update latest messages for recipient user
+                                print("‼️Database Reference of update latest messages for recipient user - \(dbRef)")
+                                completion(true)
+                            }
+                        }
+                    }
+                }
+                
                 print("Database reference in the func 'sendMessage': \(dbRef)")
-                completion(true)
             }
         }
     }

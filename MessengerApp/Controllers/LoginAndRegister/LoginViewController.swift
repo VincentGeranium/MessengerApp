@@ -271,7 +271,12 @@ class LoginViewController: UIViewController {
              Description:
              -> the 'path' which is param of getDataFor, I pass safeEmail.
              So, the 'safeEmail' is the child at which this users data exist
+             
+             -> Grap data from realtime database used by 'safe eamil'
+             Safe Email dose the 'path' that grap from 'realtime database'
+             So, follow the 'safeEmail' query and grap data what I want which is below the 'safeEamil' root query.
              */
+            // MARK:-
             DatabaseManager.shared.getDataFor(path: safaEmail) { [weak self] result in
                 switch result {
                 case .success(let data):
@@ -290,6 +295,7 @@ class LoginViewController: UIViewController {
                      -> So, create 'safe email' property first and grap the name data used by 'safe eamil'
                      ->
                      */
+                    // cache user's first name, last name
                     UserDefaults.standard.setValue("\(firstName) \(lastName)", forKey: "name")
                     
                 case .failure(let error):
@@ -298,7 +304,7 @@ class LoginViewController: UIViewController {
             }
             
             // before dismiss navigationController, save the user email.
-                // cache user's first name, last name and email to userDefault
+                // cache user's email to userDefault
                 // if i wanna to show these data which somewhere in the device, i can cache data use by userDefault
             UserDefaults.standard.setValue(email, forKey: "email")
             
@@ -355,7 +361,7 @@ extension LoginViewController: LoginButtonDelegate {
         // no operation
     }
     
-    // MARK:- facebook graph request
+    // MARK:- facebook graph request, loginButton()
     func loginButton(_ loginButton: FBLoginButton, didCompleteWith result: LoginManagerLoginResult?, error: Error?) {
         guard let token = result?.token?.tokenString else {
             print("User failed to log in with facebook")
