@@ -650,6 +650,7 @@ extension DatabaseManager {
         
     }
     
+    // MARK:- Send Message Function.
     /// Send a message with target convo and message
     public func sendMessage(to conversationID: String, otherUserEmail: String, name: String, newMessage: Message_Type, completion: @escaping (Bool) -> Void) {
         // can handle all the stuff in here in the database manager rather than doing all of that business logic in the view contorller
@@ -746,8 +747,9 @@ extension DatabaseManager {
             
             print("‼️ sendMessage func ‼️ newMessageEntry is : \(newMessageEntry)")
             
-            // insert messages that the collection.
+            // insert messages that the collection which is 'currentMessage' that append the 'newMessageEntry'.
             // This is insertion.
+            // MARK: - Insert current Message -> below '/conversationID/message'(realtime db path).
             strongSelf.database.child("\(conversationID)/message").setValue(currentMessaage) { error, dbRef in
                 guard error == nil else {
                     print("Failed to set value : \(error)")
@@ -782,6 +784,10 @@ extension DatabaseManager {
                     var postion = 0
                     
                     for conversationDictionary in currentUserConversation {
+                        /*
+                         ‼️ Description: About 'currentId' and 'conversationID'
+                         -> currentId and conversaitonID is for validate message.
+                         */
                         if let currentId = conversationDictionary["id"] as? String, currentId == conversationID {
                             // Update laatest message for update UI which is conversation view
                             targetConversation = conversationDictionary

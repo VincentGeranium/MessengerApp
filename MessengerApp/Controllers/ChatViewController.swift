@@ -171,7 +171,7 @@ extension ChatViewController: InputBarAccessoryViewDelegate {
                                    sentDate: Date(),
                                    kind: .text(text))
         
-        // send message
+        // MARK:- Send message
         if isNewConversation {
             // This block is what I to do for new conversation
             
@@ -203,7 +203,7 @@ extension ChatViewController: InputBarAccessoryViewDelegate {
             
             // This block is what I to do to do for existing convo
             
-            // Append to existing convo data
+            // MARK:- Append to existing convo data
             // Sending a text base message.
             // c.f : Should refresh user interface if the message successfully sent
             // c.f : The functiocn sendMessage's parameter that 'to' is 'String' type.
