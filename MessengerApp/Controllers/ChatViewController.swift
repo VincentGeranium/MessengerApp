@@ -101,7 +101,8 @@ class ChatViewController: MessagesViewController {
         button.setSize(CGSize(width: 35, height: 35), animated: false)
         
         // Setup button's Image.
-        button.setImage(UIImage(systemName: "plus.circle.fill"), for: .normal)
+        button.setImage(UIImage(systemName: "photo"), for: .normal)
+        
         
         // Setup InputBarButton Action
         button.onTouchUpInside { [weak self] inputBarButton in
@@ -115,7 +116,40 @@ class ChatViewController: MessagesViewController {
         messageInputBar.setStackViewItems([button], forStack: .left, animated: false)
     }
     
+    // MARK:- Showing Action Sheet
     private func presentInputActionSheet() {
+        let alertController = UIAlertController(title: "Attach Media",
+                                                message: "What would you like to attach?",
+                                                preferredStyle: .actionSheet)
+        /*
+         Description:
+         -> Instead of just show take photo or choose photo.
+         Because 'Action Sheet' can also include other things like videos.
+         */
+        alertController.addAction(UIAlertAction(title: "Photo",
+                                                style: .default,
+                                                handler: { [weak self] alertAction in
+                                                    self?.presentPhotoActionSheet()
+                                                }))
+        
+       alertController.addAction(UIAlertAction(title: "Video",
+                                               style: .default,
+                                               handler: { alertAction in
+                                                <#code#>
+                                               }))
+        
+       alertController.addAction(UIAlertAction(title: "Audio",
+                                               style: .default,
+                                               handler: { alertAction in
+                                                <#code#>
+                                               }))
+        
+       alertController.addAction(UIAlertAction(title: "Cancel",
+                                               style: .cancel,
+                                               handler: <#T##((UIAlertAction) -> Void)?##((UIAlertAction) -> Void)?##(UIAlertAction) -> Void#>))
+    }
+    
+    private func presentPhotoActionSheet() {
         
     }
     
