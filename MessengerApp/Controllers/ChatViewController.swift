@@ -88,9 +88,36 @@ class ChatViewController: MessagesViewController {
         messagesCollectionView.messagesLayoutDelegate = self
         messagesCollectionView.messagesDisplayDelegate = self
         messageInputBar.delegate = self
+        setupInputBarButton()
     }
     
+    private func setupInputBarButton() {
+        let button: InputBarButtonItem = InputBarButtonItem()
+        // the button figure
+        /*
+         c.f : Reason of figure the button cgsize that 35 which width and height.
+         -> I create a constant width 36, So, give to one point buffer.
+         */
+        button.setSize(CGSize(width: 35, height: 35), animated: false)
+        
+        // Setup button's Image.
+        button.setImage(UIImage(systemName: "plus.circle.fill"), for: .normal)
+        
+        // Setup InputBarButton Action
+        button.onTouchUpInside { [weak self] inputBarButton in
+            // This closure is Action that when user touch the button.
+            self?.presentInputActionSheet()
+        }
+        
+        // setup leftStackViewWidthConstant.
+        messageInputBar.setLeftStackViewWidthConstant(to: 36, animated: false)
+        // setup InputBarAccesoryView property of InputBarButtoItem.
+        messageInputBar.setStackViewItems([button], forStack: .left, animated: false)
+    }
     
+    private func presentInputActionSheet() {
+        
+    }
     
     private func listenForMessage(id: String, shouldScrolleToBottom: Bool) {
         /*

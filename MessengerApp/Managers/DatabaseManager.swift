@@ -749,7 +749,8 @@ extension DatabaseManager {
             
             // insert messages that the collection which is 'currentMessage' that append the 'newMessageEntry'.
             // This is insertion.
-            // MARK: - Insert current Message -> below '/conversationID/message'(realtime db path).
+            // MARK: - Insert current Message
+            // below '/conversationID/message'(realtime db path).
             strongSelf.database.child("\(conversationID)/message").setValue(currentMessaage) { error, dbRef in
                 guard error == nil else {
                     print("Failed to set value : \(error)")
