@@ -20,6 +20,10 @@ final class StorageManager {
     
     public typealias UploadPictureCompletion = (Result<String, Error>) -> Void
     
+    public typealias UploadPhotoComplertionHandler = (Result<String, Error>) -> Void
+    
+    public typealias DownloadURLCompletionHandler = (Result<URL, Error>) -> Void
+    
     // function get take bits the data and add file, written too.
     /// Uploads picture to firebase storage and return complition with url string to download
     public func uploadProfilePicture(with data: Data, fileName: String, completion: @escaping UploadPictureCompletion) {
@@ -50,7 +54,7 @@ final class StorageManager {
         // completion handler will give me a result value back with 'String' or 'optionally Error' rather in the failer case as Error
         // this hole completion handler return 'void'
 
-    public func downloadURL(for path: String, completion:  @escaping (Result<URL, Error>) -> Void) {
+    public func downloadURL(for path: String, completion:  @escaping DownloadURLCompletionHandler) {
         let reference = storage.child(path)
         
         reference.downloadURL { url, error in
@@ -62,4 +66,29 @@ final class StorageManager {
         }
     }
     
+    /// Upload image that will be sent in a conversation message
+    public func uploadMessagePhoto(with data: Data, fileName: String, completion: @escaping UploadPhotoComplertionHandler) {
+        // Put the data into new folder in my bucket and it call 'message_images'
+        storage.child("message_images/\(fileName)").putData(data, metadata: nil) { storageMetaData, error in
+            guard error == nil else {
+                // failed
+                print("Failed to upload photo data to firebase for send photo message")
+                completion(.failure(StorageErrors.failedToUpload))
+                return
+            }
+            
+            // get to image URL
+            self.storage.child("message_images/\(fileName)").downloadURL { url, error in
+                guard let url = url else {
+                    print("Failed to get download URL that photo data of message_images")
+                    completion(.failure(StorageErrors.failedToGetDownloadURL))
+                    return
+                }
+                // URL is gonna be content of message in the messaages collection and in the real time database, So get the URL
+                let urlString = url.absoluteString
+                print("download url returned this : \(urlString)")
+                completion(.success(urlString))
+            }
+        }
+    }
 }

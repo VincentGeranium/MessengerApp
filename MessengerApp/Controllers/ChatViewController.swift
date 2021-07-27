@@ -132,24 +132,60 @@ class ChatViewController: MessagesViewController {
                                                     self?.presentPhotoActionSheet()
                                                 }))
         
-       alertController.addAction(UIAlertAction(title: "Video",
-                                               style: .default,
-                                               handler: { alertAction in
-                                                <#code#>
-                                               }))
+        alertController.addAction(UIAlertAction(title: "Video",
+                                                style: .default,
+                                                handler: { alertAction in
+                                                    print("")
+                                                }))
         
-       alertController.addAction(UIAlertAction(title: "Audio",
-                                               style: .default,
-                                               handler: { alertAction in
-                                                <#code#>
-                                               }))
+        alertController.addAction(UIAlertAction(title: "Audio",
+                                                style: .default,
+                                                handler: { alertAction in
+                                                    print("")
+                                                }))
         
-       alertController.addAction(UIAlertAction(title: "Cancel",
-                                               style: .cancel,
-                                               handler: <#T##((UIAlertAction) -> Void)?##((UIAlertAction) -> Void)?##(UIAlertAction) -> Void#>))
+        alertController.addAction(UIAlertAction(title: "Cancel",
+                                                style: .cancel,
+                                                handler: nil))
+        
+        present(alertController, animated: true, completion: nil)
     }
     
     private func presentPhotoActionSheet() {
+        let alertController = UIAlertController(title: "Attach Photo",
+                                                message: "Where would you like to attach a photo from?",
+                                                preferredStyle: .actionSheet)
+        
+        alertController.addAction(UIAlertAction(title: "Camera",
+                                                style: .default,
+                                                // reason of '[weak self]', because present the 'picker'
+                                                handler: { [weak self] alertAction in
+                                                    // Create UIImagePickerController for pick camera or photo library that choise to use when user send image.
+                                                    let picker = UIImagePickerController()
+                                                    picker.sourceType = .camera
+                                                    picker.delegate = self
+                                                    // give to 'true', It can be force the user crop out a square image.
+                                                    picker.allowsEditing = true
+                                                    self?.present(picker, animated: true, completion: nil)
+                                                }))
+        
+        alertController.addAction(UIAlertAction(title: "Photo Library",
+                                                style: .default,
+                                                handler: { [weak self] alertAction in
+                                                    // Create UIImagePickerController for pick camera or photo library that choise to use when user send image.
+                                                    let picker = UIImagePickerController()
+                                                    picker.sourceType = .photoLibrary
+                                                    picker.delegate = self
+                                                    // give to 'true', It can be force the user crop out a square image.
+                                                    picker.allowsEditing = true
+                                                    self?.present(picker, animated: true, completion: nil)
+                                                }))
+        
+        alertController.addAction(UIAlertAction(title: "Cancel",
+                                                style: .cancel,
+                                                handler: nil))
+        
+        present(alertController, animated: true, completion: nil)
         
     }
     
@@ -162,7 +198,7 @@ class ChatViewController: MessagesViewController {
         DatabaseManager.shared.getAllMessagesForConvo(with: id) { [weak self] result in
             switch result {
             case .success(let messages):
-            // message collection is not empty when doing this
+                // message collection is not empty when doing this
                 guard !messages.isEmpty else {
                     // if dosen't have any messages no need to continue
                     return
@@ -180,7 +216,7 @@ class ChatViewController: MessagesViewController {
                  c.f : About Main theread
                  UI operation, want to all of those to occur on the main queue
                  So, did I wrap it in a 'DispatchQueue.main.async'
-                */
+                 */
                 DispatchQueue.main.async {
                     /*
                      Description:
@@ -284,12 +320,12 @@ extension ChatViewController: InputBarAccessoryViewDelegate {
     private func createMessageId() -> String? {
         
         // date, otherUserEmail, senderEmail, randomInt
-            // these three components should be sufficient to give us a random enough string.
-            // the worst case I can also do random Int
+        // these three components should be sufficient to give us a random enough string.
+        // the worst case I can also do random Int
         
         /*
          c.f
-         'dateStrin'g is equals 'self' with a capital 's'
+         'dateString' is equals 'self' with a capital 's'
          -> because it's static
          */
         let dateString = Self.dateFormatter.string(from: Date())
@@ -321,9 +357,9 @@ extension ChatViewController: MessagesDataSource, MessagesLayoutDelegate, Messag
             return sender
         }
         fatalError("Self sender is nil, email should be cached")
-            
+        
         // return dummy sender
-//        return Sender_Type(senderId: "", displayName: "123", photoURL: "")
+        //        return Sender_Type(senderId: "", displayName: "123", photoURL: "")
     }
     
     func messageForItem(at indexPath: IndexPath, in messagesCollectionView: MessagesCollectionView) -> MessageType {
@@ -343,6 +379,115 @@ extension ChatViewController: MessagesDataSource, MessagesLayoutDelegate, Messag
         // number of message
         return messages.count
     }
+}
+
+extension ChatViewController: UIImagePickerControllerDelegate, UINavigationControllerDelegate {
+    
+    func imagePickerControllerDidCancel(_ picker: UIImagePickerController) {
+        picker.dismiss(animated: true, completion: nil)
+    }
+    
+    func imagePickerController(_ picker: UIImagePickerController, didFinishPickingMediaWithInfo info: [UIImagePickerController.InfoKey : Any]) {
+        // dismiss picker
+        picker.dismiss(animated: true, completion: nil)
+        
+        // get the image out of it that user's pick
+        guard let image = info[UIImagePickerController.InfoKey.editedImage] as? UIImage else {
+            return
+        }
+        
+        // Trens form UIImage to pndData.
+        guard let imageData = image.pngData(),
+              let messageId = createMessageId(),
+              let conversationID = conversationID,
+              let name = self.title,
+              let selfSender = selfSender else {
+            return
+        }
+        
+        // All file name has to unique. So, using createMessageId function's
+        
+        /*
+         Work flow
+         - Upload Image
+         - Send Message
+         */
+        
+        // Create unique file name
+        let fileName = "photo_message" + messageId
+        
+        
+        
+        
+        /// Upload Image
+        StorageManager.shared.uploadMessagePhoto(with: imageData, fileName: fileName) { [weak self] result in
+            // Create strong reference
+            guard let strongSelf = self else {
+                return
+            }
+            
+            /*
+             Discussion:
+             The parameter which is 'fileName' need to unique string with a suffix of PNG
+             Because I get out PNG data of it
+             */
+            
+            // switch of the 'result'
+            switch result {
+            case .success(let urlString):
+                // Ready to send message
+                // Send the message which tranlates to update the datebase
+                    // -> c.f : So, use DatabaseManager
+                print("Uploaded Message Photo: \(urlString)")
+                
+                /*
+                 Discussion:
+                 MediaItem is actually a protocol that messageKit
+                 */
+                
+                // c.f : create a URL from the 'urlString'
+                // c.f : 'urlString' is download postion, download URL for in firebase where that uploaded image exist
+                // c.f : Don't really care about 'size' parameter for uploading the image because this is rendering perposes
+                
+                // c.f : the URL(string:) is URL Object with a string constant
+                guard let url = URL(string: urlString),
+                      let placeholder = UIImage(systemName: "plus") else {
+                    return
+                }
+                
+                let media = Media(url: url,
+                                  image: nil,
+                                  placeholderImage: placeholder,
+                                  size: .zero)
+                
+                let message = Message_Type(sender: selfSender,
+                                           messageId: messageId,
+                                           sentDate: Date(),
+                                           kind: .photo(media))
+                
+                // c.f : parameter value which is 'otherUserEmail' is property of class
+                // c.f : name parameter is the title of this controller which is the other users name, user chatting with
+                // c.f : meaning of newMessage parameter is actual message user want to send
+                DatabaseManager.shared.sendMessage(to: conversationID,
+                                                   otherUserEmail: strongSelf.otherUserEmail,
+                                                   name: name,
+                                                   newMessage: message) { result in
+                    if result == true {
+                        print("📸sent photo image")
+                    }
+                    else {
+                        print("failed to send photo image")
+                    }
+                }
+                
+            case .failure(let error):
+                print("message photo upload error: \(error)")
+            }
+        }
+        
+        
+    }
     
     
 }
+ 

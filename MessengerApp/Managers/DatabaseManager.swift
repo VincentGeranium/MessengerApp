@@ -674,6 +674,7 @@ extension DatabaseManager {
         let currentEmail = DatabaseManager.safeEmail(emailAddress: myEmail)
         
         // Grap of 'message' data from 'conversationID' which is in the realtime firebase, root query that create when user start conversation at first time
+        // fetch the conversation message
         database.child("\(conversationID)/message").observeSingleEvent(of: .value) { [weak self] snapShot in
             
             guard let strongSelf = self else {
@@ -704,8 +705,16 @@ extension DatabaseManager {
                 message = messageText
             case .attributedText(_):
                 break
-            case .photo(_):
-                break
+            case .photo(let mediaItem):
+                // if photo based message should get a media item here
+                // mediaItem to do assign the URL which is the message.
+                /*
+                 Discussion
+                 Assign it to which will basically allow to reference the photos uploads postion that for render
+                 */
+                if let targetMessageURL = mediaItem.url?.absoluteString {
+                    message = targetMessageURL
+                }
             case .video(_):
                 break
             case .location(_):
@@ -751,6 +760,7 @@ extension DatabaseManager {
             // This is insertion.
             // MARK: - Insert current Message
             // below '/conversationID/message'(realtime db path).
+            // update message at database
             strongSelf.database.child("\(conversationID)/message").setValue(currentMessaage) { error, dbRef in
                 guard error == nil else {
                     print("Failed to set value : \(error)")
@@ -762,6 +772,7 @@ extension DatabaseManager {
                  two updates for the latest messages.
                  -> 1, get the conversation node for each user
                  */
+                // get current users conversation node
                 strongSelf.database.child("\(currentEmail)/conversations").observeSingleEvent(of: .value) { snapShot in
                     guard var currentUserConversation = snapShot.value as? [[String: Any]] else {
                         completion(false)
