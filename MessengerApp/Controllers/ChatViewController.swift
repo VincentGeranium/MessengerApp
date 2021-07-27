@@ -406,6 +406,24 @@ extension ChatViewController: MessagesDataSource, MessagesLayoutDelegate, Messag
             break
         }
     }
+    
+    // Allow the user to tap the photo to go to PhotoViewerController for the user see photo bigger.
+    func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
+        // pull out message
+        // c.f : MessageKit think the indexPath.section to one message. -> 메시지 킷은 인덱스 패스의 하나의 섹션을 하나의 메시지로 생각한다.
+        let message = messages[indexPath.section]
+        
+        switch message.kind {
+        case .photo(let media):
+            guard let imageURL = media.url else {
+                return
+            }
+            let vc = PhotoViewerViewController()
+            self.navigationController?.pushViewController(vc, animated: true)
+        default:
+            break
+        }
+    }
 }
 
 // MARK:- Extension of UIImagePickerController and UINavigationController.
