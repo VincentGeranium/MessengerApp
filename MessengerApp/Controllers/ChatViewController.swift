@@ -8,6 +8,7 @@
 import UIKit
 import MessageKit
 import InputBarAccessoryView
+import SDWebImage
 
 class ChatViewController: MessagesViewController {
     
@@ -189,6 +190,7 @@ class ChatViewController: MessagesViewController {
         
     }
     
+    // MARK:- listen for message
     private func listenForMessage(id: String, shouldScrolleToBottom: Bool) {
         /*
          Description:
@@ -204,7 +206,7 @@ class ChatViewController: MessagesViewController {
                     return
                 }
                 
-                // the message array has been updated to the new instance that it return
+                // the message array has been updated to the new instance that it return valuse which is success case.
                 self?.messages = messages
                 /*
                  Description: About 'reloadDataAndKeepOffset'
@@ -349,6 +351,8 @@ extension ChatViewController: InputBarAccessoryViewDelegate {
  Description:
  -> The way that this determines(결정) that down below code the extension are how to layout to the messages in terms of right or left
  */
+
+// MARK:- Extension of MessageKit.
 extension ChatViewController: MessagesDataSource, MessagesLayoutDelegate, MessagesDisplayDelegate {
     // this function is return current user
     func currentSender() -> SenderType {
@@ -379,8 +383,32 @@ extension ChatViewController: MessagesDataSource, MessagesLayoutDelegate, Messag
         // number of message
         return messages.count
     }
+    
+    
+    func configureMediaMessageImageView(_ imageView: UIImageView, for message: MessageType, at indexPath: IndexPath, in messagesCollectionView: MessagesCollectionView) {
+        // Here is actually download and update the imageView that parameter of this function
+        
+        // Get the message as create my Message_Type structure.
+        guard let message = message as? Message_Type else {
+            return
+        }
+        
+        switch message.kind {
+        case .photo(let media):
+            // Grap Image url
+            guard let imageURL = media.url else {
+                return
+            }
+            
+            // assign imageURL to imageView
+            imageView.sd_setImage(with: imageURL, completed: nil)
+        default:
+            break
+        }
+    }
 }
 
+// MARK:- Extension of UIImagePickerController and UINavigationController.
 extension ChatViewController: UIImagePickerControllerDelegate, UINavigationControllerDelegate {
     
     func imagePickerControllerDidCancel(_ picker: UIImagePickerController) {
@@ -414,7 +442,7 @@ extension ChatViewController: UIImagePickerControllerDelegate, UINavigationContr
          */
         
         // Create unique file name
-        let fileName = "photo_message" + messageId
+        let fileName = "photo_message" + messageId.replacingOccurrences(of: " ", with: ".") + ".png"
         
         
         
@@ -484,10 +512,6 @@ extension ChatViewController: UIImagePickerControllerDelegate, UINavigationContr
                 print("message photo upload error: \(error)")
             }
         }
-        
-        
     }
-    
-    
 }
  

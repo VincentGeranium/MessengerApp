@@ -7,6 +7,7 @@
 
 import Foundation
 import FirebaseDatabase
+import MessageKit
 
 // "final" is notation of no subClass
 
@@ -631,6 +632,30 @@ extension DatabaseManager {
                     return nil
                 }
                 
+                var kind: MessageKind?
+                
+                if type == "photo" {
+                    // photo
+                    guard let imageURL = URL(string: content),
+                          let placeHolder = UIImage(systemName: "plus") else {
+                        return nil
+                    }
+                    
+                    let media = Media(url: imageURL,
+                                      image: nil,
+                                      placeholderImage: placeHolder,
+                                      size: CGSize(width: 300, height: 300))
+                    
+                    kind = .photo(media)
+                }
+                else {
+                    kind = .text(content)
+                }
+                
+                guard let finalKind = kind else {
+                    return nil
+                }
+                
                 let sender = Sender_Type(senderId: sender_email,
                                          displayName: receiver_name,
                                          photoURL: "")
@@ -643,7 +668,7 @@ extension DatabaseManager {
                 return Message_Type(sender: sender,
                                     messageId: messageID,
                                     sentDate: date,
-                                    kind: .text(content))
+                                    kind: finalKind)
             }
             completion(.success(messages))
         }
