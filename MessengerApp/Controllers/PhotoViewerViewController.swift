@@ -28,24 +28,28 @@ class PhotoViewerViewController: UIViewController {
         super.init(nibName: nil, bundle: nil)
     }
     
+    required init?(coder: NSCoder) {
+        fatalError("init(coder:) has not been implemented")
+    }
+    
     private let imageView: UIImageView = {
         let imageView: UIImageView = UIImageView()
         imageView.contentMode = .scaleAspectFit
         return imageView
     }()
     
-    required init?(coder: NSCoder) {
-        fatalError("init(coder:) has not been implemented")
-    }
-    
     override func viewDidLoad() {
         super.viewDidLoad()
+        title = "Photo"
+        navigationItem.largeTitleDisplayMode = .never
+        view.backgroundColor = .clear
         view.addSubview(imageView)
         imageView.sd_setImage(with: self.url, completed: nil)
     }
     
     override func viewDidLayoutSubviews() {
         super.viewDidLayoutSubviews()
+        imageView.frame = view.bounds
         
     }
     
