@@ -740,7 +740,11 @@ extension DatabaseManager {
                 if let targetMessageURL = mediaItem.url?.absoluteString {
                     message = targetMessageURL
                 }
-            case .video(_):
+                break
+            case .video(let mediaItem):
+                if let targetMessageURL = mediaItem.url?.absoluteString {
+                    message = targetMessageURL
+                }
                 break
             case .location(_):
                 break

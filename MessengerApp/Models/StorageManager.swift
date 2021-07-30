@@ -22,6 +22,8 @@ final class StorageManager {
     
     public typealias UploadPhotoComplertionHandler = (Result<String, Error>) -> Void
     
+    public typealias UploadVideoComplertionHandler = (Result<String, Error>) -> Void
+    
     public typealias DownloadURLCompletionHandler = (Result<URL, Error>) -> Void
     
     // function get take bits the data and add file, written too.
@@ -69,7 +71,7 @@ final class StorageManager {
     /// Upload image that will be sent in a conversation message
     public func uploadMessagePhoto(with data: Data, fileName: String, completion: @escaping UploadPhotoComplertionHandler) {
         // Put the data into new folder in my bucket and it call 'message_images'
-        storage.child("message_images/\(fileName)").putData(data, metadata: nil) { storageMetaData, error in
+        storage.child("message_images/\(fileName)").putData(data, metadata: nil) { [weak self] storageMetaData, error in
             guard error == nil else {
                 // failed
                 print("Failed to upload photo data to firebase for send photo message")
@@ -78,9 +80,66 @@ final class StorageManager {
             }
             
             // get to image URL
-            self.storage.child("message_images/\(fileName)").downloadURL { url, error in
+            self?.storage.child("message_images/\(fileName)").downloadURL { url, error in
                 guard let url = url else {
                     print("Failed to get download URL that photo data of message_images")
+                    completion(.failure(StorageErrors.failedToGetDownloadURL))
+                    return
+                }
+                // URL is gonna be content of message in the messaages collection and in the real time database, So get the URL
+                let urlString = url.absoluteString
+                print("download url returned this : \(urlString)")
+                completion(.success(urlString))
+            }
+        }
+    }
+    
+    /*
+    /// Upload video that will be sent in a conversation message
+    public func uploadMessageVideo(with fileURL: URL, fileName: String, completion: @escaping UploadVideoComplertionHandler) {
+        // Put the url into new folder in my bucket and it call as 'message_videos'
+        storage.child("message_videos/\(fileName)").putFile(from: fileURL, metadata: nil) { [weak self] metaData, error in
+            guard error == nil else {
+                // failed
+                print("Failed to upload video file to firebase for send video message")
+                completion(.failure(StorageErrors.failedToUpload))
+                return
+            }
+            
+            // get to video URL
+            self?.storage.child("message_videos/\(fileName)").downloadURL { url, error in
+                guard let url = url else {
+                    print("Failed to get download URL that video data of message_videos")
+                    completion(.failure(StorageErrors.failedToGetDownloadURL))
+                    return
+                }
+                // URL is gonna be content of message in the messaages collection and in the real time database, So get the URL
+                let urlString = url.absoluteString
+                print("download url returned this : \(urlString)")
+                completion(.success(urlString))
+            }
+        }
+    }
+     */
+    
+    /// Upload video that will be sent in a conversation message
+    public func uploadMessageVideo(with fileUrl: URL, fileName: String, completion: @escaping UploadPictureCompletion) {
+        guard let fileData = fileName.data(using: .ascii) else {
+            print("faild to chage that from url to data")
+            return
+        }
+        storage.child("message_videos_/\(fileName)").putData(fileData, metadata: nil) { [weak self] storageMetaData, error in
+            guard error == nil else {
+                // failed
+                print("Failed to upload video data to firebase for send video message")
+                completion(.failure(StorageErrors.failedToUpload))
+                return
+            }
+            
+            // get to image URL
+            self?.storage.child("message_videos_/\(fileName)").downloadURL { url, error in
+                guard let url = url else {
+                    print("Failed to get download URL that video data of message_videos")
                     completion(.failure(StorageErrors.failedToGetDownloadURL))
                     return
                 }

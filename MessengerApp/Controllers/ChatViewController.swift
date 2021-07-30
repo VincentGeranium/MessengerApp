@@ -131,13 +131,13 @@ class ChatViewController: MessagesViewController {
         alertController.addAction(UIAlertAction(title: "Photo",
                                                 style: .default,
                                                 handler: { [weak self] alertAction in
-                                                    self?.presentPhotoActionSheet()
+                                                    self?.presentPhotoInputActionSheet()
                                                 }))
         
         alertController.addAction(UIAlertAction(title: "Video",
                                                 style: .default,
-                                                handler: { alertAction in
-                                                    print("")
+                                                handler: { [weak self] alertAction in
+                                                    self?.presentVideoInputActionSheet()
                                                 }))
         
         alertController.addAction(UIAlertAction(title: "Audio",
@@ -153,7 +153,7 @@ class ChatViewController: MessagesViewController {
         present(alertController, animated: true, completion: nil)
     }
     
-    private func presentPhotoActionSheet() {
+    private func presentPhotoInputActionSheet() {
         let alertController = UIAlertController(title: "Attach Photo",
                                                 message: "Where would you like to attach a photo from?",
                                                 preferredStyle: .actionSheet)
@@ -178,6 +178,72 @@ class ChatViewController: MessagesViewController {
                                                     let picker = UIImagePickerController()
                                                     picker.sourceType = .photoLibrary
                                                     picker.delegate = self
+                                                    // give to 'true', It can be force the user crop out a square image.
+                                                    picker.allowsEditing = true
+                                                    self?.present(picker, animated: true, completion: nil)
+                                                }))
+        
+        alertController.addAction(UIAlertAction(title: "Cancel",
+                                                style: .cancel,
+                                                handler: nil))
+        
+        present(alertController, animated: true, completion: nil)
+        
+    }
+    
+    private func presentVideoInputActionSheet() {
+        let alertController = UIAlertController(title: "Attach Video",
+                                                message: "Where would you like to attach a video from?",
+                                                preferredStyle: .actionSheet)
+        
+        alertController.addAction(UIAlertAction(title: "Camera",
+                                                style: .default,
+                                                // reason of '[weak self]', because present the 'picker'
+                                                handler: { [weak self] alertAction in
+                                                    // Create UIImagePickerController for pick camera or photo library that choise to use when user send image.
+                                                    let picker = UIImagePickerController()
+                                                    picker.sourceType = .camera
+                                                    picker.delegate = self
+                                                    
+                                                    // For the camera I want to limit the user to only by able to select videos
+                                                    picker.mediaTypes = ["public.movie"]
+                                                    
+                                                    // Limit video quality
+                                                    /*
+                                                    Discussion:
+                                                    Why did create videoQualuty?
+                                                    Because actual size of video at full quailty quite large
+                                                    And I don't need full quailty additionally it just cost more money to store
+                                                    them on firebase
+                                                    */
+                                                    picker.videoQuality = .typeMedium
+                                                    
+                                                    // give to 'true', It can be force the user crop out a square image.
+                                                    picker.allowsEditing = true
+                                                    self?.present(picker, animated: true, completion: nil)
+                                                }))
+        
+        alertController.addAction(UIAlertAction(title: "Library",
+                                                style: .default,
+                                                handler: { [weak self] alertAction in
+                                                    // Create UIImagePickerController for pick camera or photo library that choise to use when user send image.
+                                                    let picker = UIImagePickerController()
+                                                    picker.sourceType = .photoLibrary
+                                                    picker.delegate = self
+                                                    
+                                                    // For the camera I want to limit the user to only by able to select videos
+                                                    picker.mediaTypes = ["public.movie"]
+                                                    
+                                                    // Limit video quality
+                                                    /*
+                                                    Discussion:
+                                                    Why did create videoQualuty?
+                                                    Because actual size of video at full quailty quite large
+                                                    And I don't need full quailty additionally it just cost more money to store
+                                                    them on firebase
+                                                    */
+                                                    picker.videoQuality = .typeMedium
+                                                    
                                                     // give to 'true', It can be force the user crop out a square image.
                                                     picker.allowsEditing = true
                                                     self?.present(picker, animated: true, completion: nil)
@@ -420,18 +486,165 @@ extension ChatViewController: UIImagePickerControllerDelegate, UINavigationContr
         // dismiss picker
         picker.dismiss(animated: true, completion: nil)
         
-        // get the image out of it that user's pick
-        guard let image = info[UIImagePickerController.InfoKey.editedImage] as? UIImage else {
-            return
-        }
-        
         // Trens form UIImage to pndData.
-        guard let imageData = image.pngData(),
-              let messageId = createMessageId(),
+        // These are use in both video and photo
+        guard let messageId = createMessageId(),
               let conversationID = conversationID,
               let name = self.title,
               let selfSender = selfSender else {
             return
+        }
+        
+        // get the image out of it that user's pick
+        if let image = info[UIImagePickerController.InfoKey.editedImage] as? UIImage, let imageData = image.pngData() {
+            // Create unique file name
+            let fileName = "photo_message" + messageId.replacingOccurrences(of: " ", with: ".") + ".png"
+            
+            /// Upload Image
+            StorageManager.shared.uploadMessagePhoto(with: imageData, fileName: fileName) { [weak self] result in
+                // Create strong reference
+                guard let strongSelf = self else {
+                    return
+                }
+                
+                /*
+                 Discussion:
+                 The parameter which is 'fileName' need to unique string with a suffix of PNG
+                 Because I get out PNG data of it
+                 */
+                
+                // switch of the 'result'
+                switch result {
+                case .success(let urlString):
+                    // Ready to send message
+                    // Send the message which tranlates to update the datebase
+                    // -> c.f : So, use DatabaseManager
+                    print("Uploaded Message Photo: \(urlString)")
+                    
+                    /*
+                     Discussion:
+                     MediaItem is actually a protocol that messageKit
+                     */
+                    
+                    // c.f : create a URL from the 'urlString'
+                    // c.f : 'urlString' is download postion, download URL for in firebase where that uploaded image exist
+                    // c.f : Don't really care about 'size' parameter for uploading the image because this is rendering perposes
+                    
+                    // c.f : the URL(string:) is URL Object with a string constant
+                    guard let url = URL(string: urlString),
+                          let placeholder = UIImage(systemName: "plus") else {
+                        return
+                    }
+                    
+                    let media = Media(url: url,
+                                      image: nil,
+                                      placeholderImage: placeholder,
+                                      size: .zero)
+                    
+                    let message = Message_Type(sender: selfSender,
+                                               messageId: messageId,
+                                               sentDate: Date(),
+                                               kind: .photo(media))
+                    
+                    // c.f : parameter value which is 'otherUserEmail' is property of class
+                    // c.f : name parameter is the title of this controller which is the other users name, user chatting with
+                    // c.f : meaning of newMessage parameter is actual message user want to send
+                    DatabaseManager.shared.sendMessage(to: conversationID,
+                                                       otherUserEmail: strongSelf.otherUserEmail,
+                                                       name: name,
+                                                       newMessage: message) { result in
+                        if result == true {
+                            print("📸sent photo image")
+                        }
+                        else {
+                            print("failed to send photo image")
+                        }
+                    }
+                    
+                case .failure(let error):
+                    print("message photo upload error: \(error)")
+                }
+            }
+        }
+        else if let videoURL = info[UIImagePickerController.InfoKey.mediaURL] as? URL {
+            // This 'videoURL' is point the user has selected or taken on the local device
+            /*
+             Discussion:
+             Why did I use URL not the data?
+             The reason of did I use URL is the data that backs the video quite large
+             */
+            
+            
+            let fileName = "video_message" + messageId.replacingOccurrences(of: " ", with: ".") + ".mov"
+            
+            // upload video
+            // uploading data to storage manager
+            StorageManager.shared.uploadMessageVideo(with: videoURL, fileName: fileName) { [weak self] result in
+                // Create strong reference
+                guard let strongSelf = self else {
+                    return
+                }
+                
+                /*
+                 Discussion:
+                 The parameter which is 'fileName' need to unique string with a suffix of PNG
+                 Because I get out PNG data of it
+                 */
+                
+                // switch of the 'result'
+                switch result {
+                case .success(let urlString):
+                    // Ready to send message
+                    // Send the message which tranlates to update the datebase
+                    // -> c.f : So, use DatabaseManager
+                    print("Uploaded Message Video: \(urlString)")
+                    
+                    /*
+                     Discussion:
+                     MediaItem is actually a protocol that messageKit
+                     */
+                    
+                    // c.f : create a URL from the 'urlString'
+                    // c.f : 'urlString' is download postion, download URL for in firebase where that uploaded image exist
+                    // c.f : Don't really care about 'size' parameter for uploading the image because this is rendering perposes
+                    
+                    // c.f : the URL(string:) is URL Object with a string constant
+                    guard let url = URL(string: urlString),
+                          let placeholder = UIImage(systemName: "plus") else {
+                        return
+                    }
+                    
+                    let media = Media(url: url,
+                                      image: nil,
+                                      placeholderImage: placeholder,
+                                      size: .zero)
+                    
+                    let message = Message_Type(sender: selfSender,
+                                               messageId: messageId,
+                                               sentDate: Date(),
+                                               kind: .video(media))
+                    
+                    // c.f : parameter value which is 'otherUserEmail' is property of class
+                    // c.f : name parameter is the title of this controller which is the other users name, user chatting with
+                    // c.f : meaning of newMessage parameter is actual message user want to send
+                    DatabaseManager.shared.sendMessage(to: conversationID,
+                                                       otherUserEmail: strongSelf.otherUserEmail,
+                                                       name: name,
+                                                       newMessage: message) { result in
+                        if result == true {
+                            print("📸sent video")
+                        }
+                        else {
+                            print("failed to send video")
+                        }
+                    }
+                    
+                case .failure(let error):
+                    print("message video upload error: \(error)")
+                }
+            }
+            
+            
         }
         
         // All file name has to unique. So, using createMessageId function's
@@ -442,77 +655,7 @@ extension ChatViewController: UIImagePickerControllerDelegate, UINavigationContr
          - Send Message
          */
         
-        // Create unique file name
-        let fileName = "photo_message" + messageId.replacingOccurrences(of: " ", with: ".") + ".png"
         
-        
-        
-        
-        /// Upload Image
-        StorageManager.shared.uploadMessagePhoto(with: imageData, fileName: fileName) { [weak self] result in
-            // Create strong reference
-            guard let strongSelf = self else {
-                return
-            }
-            
-            /*
-             Discussion:
-             The parameter which is 'fileName' need to unique string with a suffix of PNG
-             Because I get out PNG data of it
-             */
-            
-            // switch of the 'result'
-            switch result {
-            case .success(let urlString):
-                // Ready to send message
-                // Send the message which tranlates to update the datebase
-                    // -> c.f : So, use DatabaseManager
-                print("Uploaded Message Photo: \(urlString)")
-                
-                /*
-                 Discussion:
-                 MediaItem is actually a protocol that messageKit
-                 */
-                
-                // c.f : create a URL from the 'urlString'
-                // c.f : 'urlString' is download postion, download URL for in firebase where that uploaded image exist
-                // c.f : Don't really care about 'size' parameter for uploading the image because this is rendering perposes
-                
-                // c.f : the URL(string:) is URL Object with a string constant
-                guard let url = URL(string: urlString),
-                      let placeholder = UIImage(systemName: "plus") else {
-                    return
-                }
-                
-                let media = Media(url: url,
-                                  image: nil,
-                                  placeholderImage: placeholder,
-                                  size: .zero)
-                
-                let message = Message_Type(sender: selfSender,
-                                           messageId: messageId,
-                                           sentDate: Date(),
-                                           kind: .photo(media))
-                
-                // c.f : parameter value which is 'otherUserEmail' is property of class
-                // c.f : name parameter is the title of this controller which is the other users name, user chatting with
-                // c.f : meaning of newMessage parameter is actual message user want to send
-                DatabaseManager.shared.sendMessage(to: conversationID,
-                                                   otherUserEmail: strongSelf.otherUserEmail,
-                                                   name: name,
-                                                   newMessage: message) { result in
-                    if result == true {
-                        print("📸sent photo image")
-                    }
-                    else {
-                        print("failed to send photo image")
-                    }
-                }
-                
-            case .failure(let error):
-                print("message photo upload error: \(error)")
-            }
-        }
     }
 }
  
