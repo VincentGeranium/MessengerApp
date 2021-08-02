@@ -21,6 +21,8 @@
 		6A8F1D872685AB7900D6E430 /* StorageManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6A8F1D862685AB7900D6E430 /* StorageManager.swift */; };
 		6A8F1D892685B1D800D6E430 /* StorageErrors.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6A8F1D882685B1D800D6E430 /* StorageErrors.swift */; };
 		6A8F1D8B2685B4BD00D6E430 /* ComposeButtonErrors.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6A8F1D8A2685B4BD00D6E430 /* ComposeButtonErrors.swift */; };
+		6A939AAE26B7DB3300F6EDC3 /* NewConversationCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6A939AAD26B7DB3300F6EDC3 /* NewConversationCell.swift */; };
+		6A939AB026B7DBEA00F6EDC3 /* SearchResult.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6A939AAF26B7DBEA00F6EDC3 /* SearchResult.swift */; };
 		6A9EA8C226733F400015A563 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6A9EA8C126733F400015A563 /* AppDelegate.swift */; };
 		6A9EA8C426733F400015A563 /* SceneDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6A9EA8C326733F400015A563 /* SceneDelegate.swift */; };
 		6A9EA8C626733F400015A563 /* ConversationsViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6A9EA8C526733F400015A563 /* ConversationsViewController.swift */; };
@@ -53,6 +55,8 @@
 		6A8F1D862685AB7900D6E430 /* StorageManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StorageManager.swift; sourceTree = "<group>"; };
 		6A8F1D882685B1D800D6E430 /* StorageErrors.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StorageErrors.swift; sourceTree = "<group>"; };
 		6A8F1D8A2685B4BD00D6E430 /* ComposeButtonErrors.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ComposeButtonErrors.swift; sourceTree = "<group>"; };
+		6A939AAD26B7DB3300F6EDC3 /* NewConversationCell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NewConversationCell.swift; sourceTree = "<group>"; };
+		6A939AAF26B7DBEA00F6EDC3 /* SearchResult.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SearchResult.swift; sourceTree = "<group>"; };
 		6A9EA8BE26733F400015A563 /* MessengerApp.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = MessengerApp.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		6A9EA8C126733F400015A563 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
 		6A9EA8C326733F400015A563 /* SceneDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SceneDelegate.swift; sourceTree = "<group>"; };
@@ -155,6 +159,7 @@
 			isa = PBXGroup;
 			children = (
 				6ABAC139269999D200FD3ABF /* ConversationTableViewCell.swift */,
+				6A939AAD26B7DB3300F6EDC3 /* NewConversationCell.swift */,
 				6AD747B92673A90F0061F5BA /* Assets.xcassets */,
 				6A9EA8DA267341400015A563 /* Storyboard */,
 			);
@@ -174,6 +179,7 @@
 				6A044529269ACAE300F0FE54 /* LatestMessageModel.swift */,
 				6A044527269ACA5B00F0FE54 /* ConversationModel.swift */,
 				6AE12BA926AEB1D000D7FBE1 /* Media.swift */,
+				6A939AAF26B7DBEA00F6EDC3 /* SearchResult.swift */,
 			);
 			path = Models;
 			sourceTree = "<group>";
@@ -363,6 +369,7 @@
 				6A9EA8E4267343370015A563 /* NewConversationViewController.swift in Sources */,
 				6A0319A12679BFE300E44CD3 /* UserInfo.swift in Sources */,
 				6A9EA8C626733F400015A563 /* ConversationsViewController.swift in Sources */,
+				6A939AB026B7DBEA00F6EDC3 /* SearchResult.swift in Sources */,
 				6A9EA8E2267342E90015A563 /* VideoPlayerViewController.swift in Sources */,
 				6A258A7C2675E4E600E699FD /* Extension.swift in Sources */,
 				6A9EA8C226733F400015A563 /* AppDelegate.swift in Sources */,
@@ -372,6 +379,7 @@
 				6A3130CC26832A5700DBEFC1 /* ChatViewController.swift in Sources */,
 				6ABAC13A269999D200FD3ABF /* ConversationTableViewCell.swift in Sources */,
 				6A044528269ACA5B00F0FE54 /* ConversationModel.swift in Sources */,
+				6A939AAE26B7DB3300F6EDC3 /* NewConversationCell.swift in Sources */,
 				6A3761EA267C633B00A03C0A /* TabBarViewController.swift in Sources */,
 				6AE2E61F26846C6F0086A3C7 /* MessageType.swift in Sources */,
 				6A9EA8C426733F400015A563 /* SceneDelegate.swift in Sources */,

@@ -15,24 +15,24 @@ protocol NewConversationViewControllerDelegate {
 class NewConversationViewController: UIViewController {
     
     /* this closure will be invoked with the collection of data sending back.*/
-    /// c.f :  it's gonna be a closure that takes dictionary which String type key and value, not a arrry and it's return void and this whole things wrap prarenthesis for make optional
-    public var completion: (([String: String]) -> (Void))?
+    // c.f :  it's gonna be a closure that takes dictionary which String type key and value, not a arrry and it's return void and this whole things wrap prarenthesis for make optional
+    public var completion: ((SearchReslut) -> (Void))?
     
     private let spinner: JGProgressHUD = JGProgressHUD(style: .dark)
     
     
-    /// This is essentially gonna be the same thing that I have in the firebase remote
-    /// So, it's going to be an array of  dictionary with a String key and String value.
-    /// This property 's default value is empty.
+    // This is essentially gonna be the same thing that I have in the firebase remote
+    // So, it's going to be an array of  dictionary with a String key and String value.
+    // This property 's default value is empty.
     private var users = [[String: String]]()
     
-    /// results is similar array and call it results and this is gonna hold the result that will be shown in the tableview
-    private var results = [[String: String]]()
+    //  results is similar array and call it results and this is gonna hold the result that will be shown in the tableview
+    private var results = [SearchReslut]()
     
     
-    /// Check the users array, If the users array is empty which will signify the fetch has completed
-    /// The edge case of that is if this app only has one user this is gonna be  empty because will gonna filter out the current searching user. So, always want to check.
-    /// In another way if the way if the fetch has been performed.
+    // Check the users array, If the users array is empty which will signify the fetch has completed
+    // The edge case of that is if this app only has one user this is gonna be  empty because will gonna filter out the current searching user. So, always want to check.
+    // In another way if the way if the fetch has been performed.
     private var hasFetched = false
     
     private let searchBar: UISearchBar = {
@@ -44,8 +44,8 @@ class NewConversationViewController: UIViewController {
     private let resultTableView: UITableView = {
         let tableView: UITableView = UITableView()
         tableView.isHidden = true
-        tableView.register(UITableViewCell.self,
-                           forCellReuseIdentifier: "cell")
+        tableView.register(NewConversationCell.self,
+                           forCellReuseIdentifier: NewConversationCell.identifire)
         return tableView
     }()
     
@@ -103,19 +103,33 @@ class NewConversationViewController: UIViewController {
     }
 }
 
+// MARK: - Extension about UITableViewDelegate, UITableViewDataSource
 extension NewConversationViewController: UITableViewDelegate, UITableViewDataSource {
     func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
         return results.count
     }
     
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
-        let cell = tableView.dequeueReusableCell(withIdentifier: "cell", for: indexPath)
+        // nth position in our collection of results
+        let model = results[indexPath.row]
+        
+        guard let cell = tableView.dequeueReusableCell(withIdentifier: NewConversationCell.identifire, for: indexPath) as? NewConversationCell else {
+            return UITableViewCell()
+        }
         // text labels text be the elements in results
         // results is an array so, have to get the nth element at that position.
         // and then pull out the value useing key that i want to show in tabel view.
             // c.f : meaning of 'nth' is 'used to describe the most recent in a long series of things, when you do not know how many there are'
         
-        cell.textLabel?.text = results[indexPath.row]["name"]
+        /*
+         Discussion: About refactoring this code that after create 'SearchResult' model
+         cell.textLabel?.text = results[indexPath.row]["name"] -> this code is before that create 'SearchResult'
+         Before the create model, The 'results' is like this 'let results = [[String: String]]()'
+         After create the model, The 'results' is like this 'let results = [SearchResult]()'
+         And than find error form here that 'Value of type SearchResult has no subscripts' in this code which is ' cell.textLabel?.text = results[indexPath.row]["name"]' that means SearchResult has not ["name"].
+         So the code chage like this 'cell.textLabel?.text = results[indexPath.row].name'
+         */
+        cell.configure(with: model)
         return cell
     }
     
@@ -247,15 +261,17 @@ extension NewConversationViewController: UISearchBarDelegate {
         
         
         /*
-         c.f :
+         c.f : About cast by String
          I don't need to cast the 'let email = $0["email"]' for String
          Because already know the value is String from ' let results: [[String: String]]'
          If I create the code like this 'let email = $0["email"] as? String' will show yellow warning
          If don't want to yellow warning make code like this 'let email = $0["email"]'
          */
-        let results: [[String: String]] = self.users.filter {
+        
+        // This 'result' is filter out to be 'SearchResult' model.
+        let results: [SearchReslut] = self.users.filter {
             /*
-             c.f :
+             Discussion : About condition code logic
              I don't want create new convo that when user is current user
              Also I don't want show user who is the current user in the new convo
              So, I make condition code like this 'email != safeEmail'
@@ -271,6 +287,16 @@ extension NewConversationViewController: UISearchBarDelegate {
             }
             // c.f : term is 'query' which is this method's parameter.
             return name.hasPrefix(term.lowercased())
+        } .compactMap { results in
+            guard let email = results["email"] else {
+                return nil
+            }
+            
+            guard let name = results["name"] else {
+                return nil
+            }
+            
+            return SearchReslut(name: name, email: email)
         }
         self.results = results
         

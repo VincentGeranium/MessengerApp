@@ -177,11 +177,11 @@ class ConversationsViewController: UIViewController {
     
     // this func is getting back data from the 'result' -> this func prarmeter will be result.
     // the result type is [String: String]
-    private func createNewConversation(result: [String: String]) {
+    private func createNewConversation(result: SearchReslut) {
         
-        guard let name = result["name"], let email = result["email"] else {
-            return
-        }
+        let name = result.name
+        let email = result.email
+        
         
         
         // essentially push the chat view controller
