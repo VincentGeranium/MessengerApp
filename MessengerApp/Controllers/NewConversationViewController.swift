@@ -233,18 +233,43 @@ extension NewConversationViewController: UISearchBarDelegate {
     // basically pass term from the searchUser's query parameter
     func filterUsers(with term: String) {
         // update UI: either show result or show 'no result' text label
+        guard let currentUserEmail = UserDefaults.standard.value(forKey: "email") as? String else {
+            return
+        }
+        
         guard hasFetched else {
             return
         }
         
+        let safeEmail = DatabaseManager.safeEmail(emailAddress: currentUserEmail)
+        
         self.spinner.dismiss()
         
+        
+        /*
+         c.f :
+         I don't need to cast the 'let email = $0["email"]' for String
+         Because already know the value is String from ' let results: [[String: String]]'
+         If I create the code like this 'let email = $0["email"] as? String' will show yellow warning
+         If don't want to yellow warning make code like this 'let email = $0["email"]'
+         */
         let results: [[String: String]] = self.users.filter {
+            /*
+             c.f :
+             I don't want create new convo that when user is current user
+             Also I don't want show user who is the current user in the new convo
+             So, I make condition code like this 'email != safeEmail'
+             */
+            guard let email = $0["email"], email != safeEmail else {
+                return false
+            }
+            
             // the $0 is enrty of Arrary that contain String Key and String Value's Dictionary.
                 // c.f : [String: String] => $0
             guard let name = $0["name"]?.lowercased() else {
                 return false
             }
+            // c.f : term is 'query' which is this method's parameter.
             return name.hasPrefix(term.lowercased())
         }
         self.results = results

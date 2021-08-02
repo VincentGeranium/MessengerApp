@@ -608,6 +608,9 @@ extension DatabaseManager {
                 completion(.failure(DatabaseErrors.failedToFetch))
                 return
             }
+            
+            // This structure's root node is 'message' that in realtime database
+            // This parent's node type is Array and each Array have onw number.
             /*
              content:
              date:
@@ -617,9 +620,10 @@ extension DatabaseManager {
              sender_email:
              type:
              */
+            
             // Computed property
+            // Using Compact map for spit out message
             let messages: [Message_Type] = value.compactMap { dictionary in
-                
                 guard let content = dictionary["content"] as? String,
                       let dateString = dictionary["date"] as? String,
                       let messageID = dictionary["id"] as? String,
@@ -634,6 +638,7 @@ extension DatabaseManager {
                 
                 var kind: MessageKind?
                 
+                // Vaildate of type.
                 if type == "photo" {
                     // photo
                     guard let imageURL = URL(string: content),
@@ -647,6 +652,20 @@ extension DatabaseManager {
                                       size: CGSize(width: 300, height: 300))
                     
                     kind = .photo(media)
+                }
+                else if type == "video" {
+                    // photo
+                    guard let videoURL = URL(string: content),
+                          let placeHolder = UIImage(named:"video_placeholder") else {
+                        return nil
+                    }
+                    
+                    let media = Media(url: videoURL,
+                                      image: nil,
+                                      placeholderImage: placeHolder,
+                                      size: CGSize(width: 300, height: 300))
+                    
+                    kind = .video(media)
                 }
                 else {
                     kind = .text(content)

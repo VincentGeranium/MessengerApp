@@ -154,9 +154,9 @@
 		6A9EA8D6267340DD0015A563 /* Views */ = {
 			isa = PBXGroup;
 			children = (
+				6ABAC139269999D200FD3ABF /* ConversationTableViewCell.swift */,
 				6AD747B92673A90F0061F5BA /* Assets.xcassets */,
 				6A9EA8DA267341400015A563 /* Storyboard */,
-				6ABAC139269999D200FD3ABF /* ConversationTableViewCell.swift */,
 			);
 			path = Views;
 			sourceTree = "<group>";

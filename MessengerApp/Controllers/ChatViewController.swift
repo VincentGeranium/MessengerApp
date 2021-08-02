@@ -9,6 +9,8 @@ import UIKit
 import MessageKit
 import InputBarAccessoryView
 import SDWebImage
+import AVFoundation
+import AVKit
 
 class ChatViewController: MessagesViewController {
     
@@ -84,7 +86,6 @@ class ChatViewController: MessagesViewController {
     override func viewDidLoad() {
         super.viewDidLoad()
         view.backgroundColor = .systemPink
-        
         messagesCollectionView.messagesDataSource = self
         messagesCollectionView.messagesLayoutDelegate = self
         messagesCollectionView.messagesDisplayDelegate = self
@@ -216,7 +217,7 @@ class ChatViewController: MessagesViewController {
                                                     And I don't need full quailty additionally it just cost more money to store
                                                     them on firebase
                                                     */
-                                                    picker.videoQuality = .typeMedium
+//                                                    picker.videoQuality = .typeMedium
                                                     
                                                     // give to 'true', It can be force the user crop out a square image.
                                                     picker.allowsEditing = true
@@ -232,8 +233,14 @@ class ChatViewController: MessagesViewController {
                                                     picker.delegate = self
                                                     
                                                     // For the camera I want to limit the user to only by able to select videos
-                                                    picker.mediaTypes = ["public.movie"]
                                                     
+                                                    
+                                                    guard let mediaType = UIImagePickerController.availableMediaTypes(for: .photoLibrary) else {
+                                                        return
+                                                    }
+                                                    
+                                                    picker.mediaTypes = mediaType
+                                                    print("🎯 picker.mediaTypes : \(picker.mediaTypes)")
                                                     // Limit video quality
                                                     /*
                                                     Discussion:
@@ -242,7 +249,7 @@ class ChatViewController: MessagesViewController {
                                                     And I don't need full quailty additionally it just cost more money to store
                                                     them on firebase
                                                     */
-                                                    picker.videoQuality = .typeMedium
+//                                                    picker.videoQuality = .typeMedium
                                                     
                                                     // give to 'true', It can be force the user crop out a square image.
                                                     picker.allowsEditing = true
@@ -574,7 +581,6 @@ extension ChatViewController: UIImagePickerControllerDelegate, UINavigationContr
              The reason of did I use URL is the data that backs the video quite large
              */
             
-            
             let fileName = "video_message" + messageId.replacingOccurrences(of: " ", with: ".") + ".mov"
             
             // upload video
@@ -657,6 +663,7 @@ extension ChatViewController: UIImagePickerControllerDelegate, UINavigationContr
         
         
     }
+    
 }
  
 extension ChatViewController: MessageCellDelegate {
@@ -677,9 +684,24 @@ extension ChatViewController: MessageCellDelegate {
             }
             let vc = PhotoViewerViewController(with: imageURL)
             self.navigationController?.pushViewController(vc, animated: true)
+            
+        case .video(let media):
+            guard let videoURL = media.url else {
+                return
+            }
+            
+            /*
+             c.f :
+             AVPlayerViewController's under the hood can handle playing a video from a remote URL
+             Which is super handy
+             */
+            let avPlayerVC = AVPlayerViewController()
+            avPlayerVC.player = AVPlayer(url: videoURL)
+            present(avPlayerVC, animated: true, completion: nil)
+            
         default:
             break
         }
     }
-     
+    
 }

@@ -94,41 +94,10 @@ final class StorageManager {
         }
     }
     
-    /*
-    /// Upload video that will be sent in a conversation message
-    public func uploadMessageVideo(with fileURL: URL, fileName: String, completion: @escaping UploadVideoComplertionHandler) {
-        // Put the url into new folder in my bucket and it call as 'message_videos'
-        storage.child("message_videos/\(fileName)").putFile(from: fileURL, metadata: nil) { [weak self] metaData, error in
-            guard error == nil else {
-                // failed
-                print("Failed to upload video file to firebase for send video message")
-                completion(.failure(StorageErrors.failedToUpload))
-                return
-            }
-            
-            // get to video URL
-            self?.storage.child("message_videos/\(fileName)").downloadURL { url, error in
-                guard let url = url else {
-                    print("Failed to get download URL that video data of message_videos")
-                    completion(.failure(StorageErrors.failedToGetDownloadURL))
-                    return
-                }
-                // URL is gonna be content of message in the messaages collection and in the real time database, So get the URL
-                let urlString = url.absoluteString
-                print("download url returned this : \(urlString)")
-                completion(.success(urlString))
-            }
-        }
-    }
-     */
-    
     /// Upload video that will be sent in a conversation message
     public func uploadMessageVideo(with fileUrl: URL, fileName: String, completion: @escaping UploadPictureCompletion) {
-        guard let fileData = fileName.data(using: .ascii) else {
-            print("faild to chage that from url to data")
-            return
-        }
-        storage.child("message_videos_/\(fileName)").putData(fileData, metadata: nil) { [weak self] storageMetaData, error in
+        // insert video in storage
+        storage.child("message_videos_/\(fileName)").putFile(from: fileUrl, metadata: nil) { [weak self] storageMetaData, error in
             guard error == nil else {
                 // failed
                 print("Failed to upload video data to firebase for send video message")
@@ -136,7 +105,7 @@ final class StorageManager {
                 return
             }
             
-            // get to image URL
+            // get to video URL
             self?.storage.child("message_videos_/\(fileName)").downloadURL { url, error in
                 guard let url = url else {
                     print("Failed to get download URL that video data of message_videos")
