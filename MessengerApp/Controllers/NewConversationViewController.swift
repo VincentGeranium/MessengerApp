@@ -155,6 +155,11 @@ extension NewConversationViewController: UITableViewDelegate, UITableViewDataSou
         }
               
     }
+    
+    // this method give height by static which is each cell.
+    func tableView(_ tableView: UITableView, heightForRowAt indexPath: IndexPath) -> CGFloat {
+        return 90
+    }
 
 }
 

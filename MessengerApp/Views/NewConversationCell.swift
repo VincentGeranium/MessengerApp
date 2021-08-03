@@ -29,7 +29,7 @@ class NewConversationCell: UITableViewCell {
     private let userAvatarImageView: UIImageView = {
         let imageView: UIImageView = UIImageView()
         imageView.contentMode = .scaleAspectFill
-        imageView.layer.cornerRadius = 50
+        imageView.layer.cornerRadius = 35
         imageView.layer.masksToBounds = true
         return imageView
     }()
@@ -55,15 +55,19 @@ class NewConversationCell: UITableViewCell {
     override func layoutSubviews() {
         super.layoutSubviews()
         // frame each of subviews
+        /*
+         Discussion: About Cell Height
+         As I can see the userAvatarImageView's frame that got top buffer is 10 and bottom buffer 10 picxel
+         */
         userAvatarImageView.frame = CGRect(x: 10,
                                            y: 10,
-                                           width: 100,
-                                           height: 100)
+                                           width: 70,
+                                           height: 70)
         
         userNameLabel.frame = CGRect(x: userAvatarImageView.right + 10,
-                                     y: 10,
+                                     y: 20,
                                      width: contentView.width - 20 - userAvatarImageView.width,
-                                     height: (contentView.height-20))
+                                     height: 50)
     }
     
     public func configure(with model: SearchReslut) {

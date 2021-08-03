@@ -97,12 +97,32 @@ final class StorageManager {
     /// Upload video that will be sent in a conversation message
     public func uploadMessageVideo(with fileUrl: URL, fileName: String, completion: @escaping UploadPictureCompletion) {
         // insert video in storage
-        storage.child("message_videos_/\(fileName)").putFile(from: fileUrl, metadata: nil) { [weak self] storageMetaData, error in
+        let videoRef = storage.child("message_videos_/\(fileName)")
+        
+        videoRef.putFile(from: fileUrl, metadata: nil) { [weak self] storageMetaData, error in
             guard error == nil else {
                 // failed
                 print("Failed to upload video data to firebase for send video message")
+                videoRef.getMetadata { meta, error in
+                    if let error = error {
+                        print("🎯🎯Failed to get metadata : \(error)")
+                    } else {
+                        print("🎯🎯get metadata : \(meta)")
+                    }
+                }
+
                 completion(.failure(StorageErrors.failedToUpload))
                 return
+            }
+            
+            // get video metadata
+            videoRef.getMetadata { metadata, error in
+                guard error == nil else {
+                    // failed to get metadata
+                    print("Failed to get metadata from storage")
+                    return
+                }
+                print("🎯This is metadaata\(metadata)🎯")
             }
             
             // get to video URL
