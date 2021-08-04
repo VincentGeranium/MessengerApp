@@ -47,6 +47,8 @@ class ConversationsViewController: UIViewController {
     
     private let composeViewModel = ComposeButtonViewModel()
     
+    private var loginObserver: NSObjectProtocol?
+    
     override func viewDidLoad() {
         super.viewDidLoad()
         
@@ -58,6 +60,16 @@ class ConversationsViewController: UIViewController {
         setupTableView()
         fetchConverstation()
         startListeningForConversation()
+        
+        // If notification fired this block will get excuted
+        loginObserver = NotificationCenter.default.addObserver(forName: .didLogInNotification, object: nil, queue: .main, using: { [weak self] noti in
+            guard let strongSelf = self else {
+                return
+            }
+            print("🎯NotificationCenter 'didLogInNotification' is working🎯")
+            strongSelf.startListeningForConversation()
+            
+        })
     }
     
     /*
@@ -73,6 +85,12 @@ class ConversationsViewController: UIViewController {
         // get the user's email from UserDefault
         guard let email = UserDefaults.standard.value(forKey: "email") as? String else {
             return
+        }
+        
+        if let observer = loginObserver {
+            print("🎯NotificationCenter Remove Observer is working🎯")
+            // get rid of this observer because user already signd in now
+            NotificationCenter.default.removeObserver(observer)
         }
         
         // transform the 'email' to 'safe email' -> the reason of can't use '., $, ect'

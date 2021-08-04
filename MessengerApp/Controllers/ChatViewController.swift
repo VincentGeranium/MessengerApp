@@ -11,8 +11,11 @@ import InputBarAccessoryView
 import SDWebImage
 import AVFoundation
 import AVKit
+import Photos
+import PhotosUI
 
 class ChatViewController: MessagesViewController {
+    
     
     public static let dateFormatter: DateFormatter = {
         let formatter = DateFormatter()
@@ -228,13 +231,36 @@ class ChatViewController: MessagesViewController {
                                                 style: .default,
                                                 handler: { [weak self] alertAction in
                                                     // Create UIImagePickerController for pick camera or photo library that choise to use when user send image.
+                                              
+                                                    // Version of iOS
+                                                    /*
+                                                    Discussion:
+                                                    iOS 버전에 따라 달리 사용되는 메소드나 새로이 생긴 여러 프레임워크들로 인하여
+                                                    if #available(iOS 14, *)을 사용한다.
+                                                    위의 코드를 예를 들어 설명하자면 ios 14와 그 이상의 버전을 if 블록에 들어있는
+                                                    코드를 실행하고 else 블록은 그 이하의 버전에서 사용된다.
+                                                    
+                                                    if #available(iOS 14, *) {
+                                                    
+                                                    let PHPLibrary = PHPhotoLibrary.shared().register(PHPhotoLibraryAvailabilityObserver)
+                                                        let PHPickerVC = PHPickerViewController(configuration: .init(photoLibrary: PHPLibrary))
+                                                        PHPickerVC.delegate = self
+                                                 
+                                                    } else {
+                                                        // Fallback on earlier versions
+                                                        
+                                                        picker.sourceType = .photoLibrary
+                                                        picker.delegate = self
+                                                        
+                                                    }
+                                                    */
                                                     let picker = UIImagePickerController()
                                                     picker.sourceType = .photoLibrary
                                                     picker.delegate = self
-                                                    
+                                          
                                                     // For the camera I want to limit the user to only by able to select videos
                                                     
-                                                    
+//                                                    guard let mediaType = PHP
                                                     guard let mediaType = UIImagePickerController.availableMediaTypes(for: .photoLibrary) else {
                                                         return
                                                     }
