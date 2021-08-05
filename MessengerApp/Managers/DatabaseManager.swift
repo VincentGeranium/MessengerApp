@@ -930,4 +930,63 @@ extension DatabaseManager {
             }
         }
     }
+    // c.f: This function for allow to delete convertaion
+    public func deleteConversation(conversationId: String, completion: @escaping (Bool) -> Void) {
+        // get current user email address
+        guard let email = UserDefaults.standard.value(forKey: "email") as? String else {
+            print("Error : Failed get current user Email")
+            return completion(false)
+        }
+        
+        let safeEmail = DatabaseManager.safeEmail(emailAddress: email)
+        
+        // the 'conversationId' which is parameter that this function.
+        print("Deleting conversation with id: \(conversationId)")
+        
+        /*
+         Workflow
+         -  Get all conversation for current user.
+         -  Delete conversation in collection with target id.
+         -  Reset those conversations for the user in datebase.
+         */
+        let ref = database.child("\(safeEmail)/conversations")
+        ref.observeSingleEvent(of: .value) { snapShot in
+            // If snapShot's valus is Array that contain which is dictionary that 'String: Any' type, code will excute
+            if var conversations = snapShot.value as? [[String: Any]] {
+                // positionToRemove is index that for delete element in the array
+                var positionToRemove = 0
+                
+                // iterate over
+                for conversation in conversations {
+                    if let id = conversation["id"] as? String,
+                       // the conversationId which is parameter this func passing in
+                       id == conversationId {
+                        print("Found conversation to delete")
+                        // If this block excute, It will meaning that found the position which is I want to use to delete
+                        // If found the position simple 'break'
+                        break
+                    }
+                    // not found position that I want to use to delete
+                    positionToRemove += 1
+                }
+                // conversation collection remove conversation that index 'positionToRemove' pointing
+                conversations.remove(at: positionToRemove)
+                
+                // Update the 'ref' with this new value
+                ref.setValue(conversations) { error, databaseRef in
+                    // validate error
+                    guard error == nil else {
+                        // error occur
+                        completion(false)
+                        print("failed to write new conversation array")
+                        return
+                    }
+                    // error doesn't occur
+                    print("Success to delete conversation")
+                    completion(true)
+                }
+            }
+        }
+    }
+    
 }
