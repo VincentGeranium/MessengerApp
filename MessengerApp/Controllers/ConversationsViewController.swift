@@ -339,19 +339,20 @@ extension ConversationsViewController: UITableViewDelegate, UITableViewDataSourc
          */
         
         if editingStyle == .delete {
+            // get convo id from conversation collection that postion is indexPath.row
+            // c.f : this code is simply grap id by 'String' type
+            let conversationId = conversation[indexPath.row].id
+            
             // begin delete
             
             // first allow the tableView to start updating
             tableView.beginUpdates()
             
-            // Updating the backing model.
-            
-            // Actually getting rid of the row.
-            // the reason I can use row directly is because in this tableview is only one section
-            self.conversation.remove(at: indexPath.row)
-            
-            tableView.deleteRows(at: [indexPath], with: .left)
-            
+            DatabaseManager.shared.deleteConversation(conversationId: conversationId) { [weak self] success in
+                // the reason I can use row directly is because in this tableview is only one section
+                self?.conversation.remove(at: indexPath.row)
+                tableView.deleteRows(at: [indexPath], with: .left)
+            }
             // end update
             tableView.endUpdates()
         }
