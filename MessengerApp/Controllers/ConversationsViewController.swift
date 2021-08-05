@@ -88,10 +88,11 @@ class ConversationsViewController: UIViewController {
         }
         
         if let observer = loginObserver {
-            print("🎯NotificationCenter Remove Observer is working🎯")
             // get rid of this observer because user already signd in now
             NotificationCenter.default.removeObserver(observer)
         }
+        
+        print("🎯starting conversation fetch...🎯")
         
         // transform the 'email' to 'safe email' -> the reason of can't use '., $, ect'
         let safeEmail = DatabaseManager.safeEmail(emailAddress: email)
@@ -230,7 +231,7 @@ class ConversationsViewController: UIViewController {
 }
 
 
-
+// MARK:- Extension UITableViewDelegate, UITableViewDataSource
 extension ConversationsViewController: UITableViewDelegate, UITableViewDataSource {
     
     func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
@@ -285,5 +286,74 @@ extension ConversationsViewController: UITableViewDelegate, UITableViewDataSourc
          So, give 10-point buffer on both the bottom and top of it.
          */
         return 120
+    }
+    
+    /*
+     Discussion: About this methods.
+     
+     When I deleting conversation It’s a two directional system in DB.
+     So, if me and someone having a conversation in my app, when I delete it that doesn’t necessarily mean it should disappearear from app.
+     That’s the reason that I set up my DB which is conversation root.
+     But DB not only have a root conversation that hold all message but for each user to have conversation collection.
+     So if user delete a conversation I can delete the reference  in root conversation collection.
+     And it will remove it from their list but not necessarily the other user list.
+     */
+    
+    /*
+     Discussion: about 'tableView(_ tableView: UITableView, editingStyleForRowAt indexPath: IndexPath) -> UITableViewCell.EditingStyle' method
+     
+     This method is returned editing style for the give it indexPath.
+     And 'UITableViewCell.EditingStyle' this object back.
+     */
+    
+    func tableView(_ tableView: UITableView, editingStyleForRowAt indexPath: IndexPath) -> UITableViewCell.EditingStyle {
+        // memory serve three things which 'delete', 'insert' and 'none'.
+        // c.f : especially 'none' is use when customizing.
+        return .delete
+    }
+    
+    /*
+     Discussion: When 'tableView(_ tableView: UITableView, commit editingStyle: UITableViewCell.EditingStyle, forRowAt indexPath: IndexPath)' this method is get call??
+     
+     When user swiped the row away this method will get call
+     */
+    
+    // c.f : This method parameter which is 'indexPath' that refereces which row user swiping on
+    func tableView(_ tableView: UITableView, commit editingStyle: UITableViewCell.EditingStyle, forRowAt indexPath: IndexPath) {
+        /*
+         Discussion : Basically this function action
+         
+         Basically this function handle that delete action.
+         So this function entail two things.
+         
+         1. Actually getting rid of the row.
+         2. Updating the backing model
+         */
+        
+        /*
+         Discussion: If did not update model what happend?
+         
+         If did not update model after row the app is gonna crash.
+         Because there's going to be a mismatch of the model array that is driving the tableview will have one additional entry where as my row will have one less.
+         So there will be a collision there and it will crash.
+         */
+        
+        if editingStyle == .delete {
+            // begin delete
+            
+            // first allow the tableView to start updating
+            tableView.beginUpdates()
+            
+            // Updating the backing model.
+            
+            // Actually getting rid of the row.
+            // the reason I can use row directly is because in this tableview is only one section
+            self.conversation.remove(at: indexPath.row)
+            
+            tableView.deleteRows(at: [indexPath], with: .left)
+            
+            // end update
+            tableView.endUpdates()
+        }
     }
 }
